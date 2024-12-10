@@ -36,7 +36,7 @@ const items = [
   },
   {
     title: "搜索",
-    url: "#",
+    url: "/core/search",
     icon: Search,
   },
   {

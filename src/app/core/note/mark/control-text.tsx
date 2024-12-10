@@ -24,7 +24,7 @@ export function ControlText() {
   const { fetchMarks } = useMarkStore()
 
   async function handleSuccess() {
-    await insertMark({ tagId: currentTagId, type: 'text', content: text })
+    await insertMark({ tagId: currentTagId, type: 'text', desc: text, content: text })
     await fetchMarks()
     await fetchTags()
     getCurrentTag()

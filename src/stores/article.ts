@@ -2,6 +2,11 @@ import { BaseDirectory, DirEntry, readDir, readTextFile, writeTextFile } from '@
 import { Store } from '@tauri-apps/plugin-store'
 import { create } from 'zustand'
 
+export interface Article {
+  article: string
+  path: string
+}
+
 interface NoteState {
   activeFilePath: string 
   setActiveFilePath: (name: string) => void
@@ -18,6 +23,9 @@ interface NoteState {
   currentArticle: string
   readArticle: (path: string) => Promise<void>
   setCurrentArticle: (content: string) => Promise<void>
+
+  allArticle: Article[]
+  loadAllArticle: () => Promise<void>
 }
 
 export interface DirTree extends DirEntry {
@@ -113,6 +121,18 @@ const useArticleStore = create<NoteState>((set, get) => ({
       const path = get().activeFilePath
       await writeTextFile(`article/${path}`, content, { baseDir: BaseDirectory.AppData })
     }
+  },
+  
+  allArticle: [],
+  loadAllArticle: async () => {
+    const res = await readDir('article', { baseDir: BaseDirectory.AppData })
+    const allArticle = res.filter(file => file.isFile && file.name !== '.DS_Store').map(file => ({ article: '', path: file.name }))
+    for (let index = 0; index < allArticle.length; index += 1) {
+      const file = allArticle[index];
+      const article = await readTextFile(`article/${file.path}`, { baseDir: BaseDirectory.AppData })
+      allArticle[index].article = article
+    }
+    set({ allArticle })
   }
 }))
 

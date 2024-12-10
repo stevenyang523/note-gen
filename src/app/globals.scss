@@ -129,3 +129,7 @@ html, body {
     @apply size-4;
   }
 }
+
+.search-highlight{
+  @apply bg-secondary-foreground text-secondary px-1
+}
