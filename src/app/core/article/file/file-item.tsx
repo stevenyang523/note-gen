@@ -16,7 +16,17 @@ export function FileItem({ item }: { item: DirTree }) {
   const [name, setName] = useState(item.name)
   const inputRef = useRef<HTMLInputElement>(null)
   const { activeFilePath, setActiveFilePath, readArticle, setCurrentArticle, fileTree, setFileTree } = useArticleStore()
-  const path = item.parent?.name ? item.parent.name + '/' + item.name : item.name
+  
+  let path = item.name
+  function readParentPath(item: DirTree) {
+    if (item.parent) {
+      path = item.parent.name + '/' + path
+      if (item.parent.parent) {
+        readParentPath(item.parent)
+      }
+    }
+  }
+  readParentPath(item)
 
   function handleSelectFile() {
     setActiveFilePath(path)

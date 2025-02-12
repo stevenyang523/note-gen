@@ -16,7 +16,17 @@ export function FolderItem({ item }: { item: DirTree }) {
   const [isDragging, setIsDragging] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
   const { activeFilePath, loadFileTree, setActiveFilePath, collapsibleList, setCollapsibleList, fileTree, setFileTree, newFileOnFolder } = useArticleStore()
-  const path = item.parent?.name ? item.parent.name + '/' + item.name : item.name
+
+  let path = item.name
+  function readParentPath(item: DirTree) {
+    if (item.parent) {
+      path = item.parent.name + '/' + path
+      if (item.parent.parent) {
+        readParentPath(item.parent)
+      }
+    }
+  }
+  readParentPath(item)
 
   async function handleDeleteFolder(evnet: React.MouseEvent<HTMLDivElement, MouseEvent>) {
     evnet.stopPropagation()
