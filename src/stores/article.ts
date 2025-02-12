@@ -1,5 +1,6 @@
 import { decodeBase64ToString, getFiles } from '@/lib/github'
 import { GithubContent, RepoNames } from '@/lib/github.types'
+import { join } from '@tauri-apps/api/path'
 import { BaseDirectory, DirEntry, exists, mkdir, readDir, readTextFile, writeTextFile } from '@tauri-apps/plugin-fs'
 import { Store } from '@tauri-apps/plugin-store'
 import { cloneDeep } from 'lodash-es'
@@ -86,52 +87,69 @@ const useArticleStore = create<NoteState>((set, get) => ({
   loadFileTree: async () => {
     set({ fileTreeLoading: true })
     set({ fileTree: [] })
-    const cacheTree: DirTree[] = []
     const isArticleDir = await exists('article', { baseDir: BaseDirectory.AppData })
     if (!isArticleDir) {
       await mkdir('article', { baseDir: BaseDirectory.AppData })
     }
-    const dirs = (await readDir('article', { baseDir: BaseDirectory.AppData })).sort((a, b) => a.name.localeCompare(b.name))
-    cacheTree.push(...dirs.filter(file => file.name !== '.DS_Store')
-      .map(file => ({ ...file, parent: undefined, isEditing: false, isLocale: true })))
-    for (let index = 0; index < cacheTree.length; index++) {
-      const dir = cacheTree[index];
-      if (dir.isDirectory) {
-        const files = await readDir(`article/${dir.name}`, { baseDir: BaseDirectory.AppData });
-        dir.children = files.filter(file => file.name !== '.DS_Store').map(file => ({ ...file, parent: dir, isEditing: false, isLocale: true }))
+    // 获取 article 路径下所有的文件
+    const dirs = (await readDir('article', { baseDir: BaseDirectory.AppData }))
+      .filter(file => file.name !== '.DS_Store').map(file => ({
+        ...file,
+        isEditing: false,
+        isLocale: true,
+        parent: undefined,
+        sha: ''
+      }))
+    processEntriesRecursively('article', dirs as DirTree[]);
+    async function processEntriesRecursively(parent: string, entries: DirTree[]) {
+      for (const entry of entries) {
+        if (entry.isDirectory) {
+          const dir = await join(parent, entry.name);
+          const children = (await readDir(dir, { baseDir: BaseDirectory.AppLocalData }))
+            .filter(file => file.name !== '.DS_Store')
+            .map(file => ({
+              ...file,
+              parent: entry,
+              isEditing: false,
+              isLocale: true,
+              sha: ''
+            })) as DirTree[]
+          entry.children = children
+          processEntriesRecursively(dir, children)
+        }
       }
     }
-    set({ fileTree: cacheTree })
+    set({ fileTree: dirs })
     const store = await Store.load('store.json');
     const accessToken = await store.get<string>('accessToken')
     if (!accessToken) {
       set({ fileTreeLoading: false })
       return
-    }
-    const githubFiles = await getFiles({ path: '', repo: RepoNames.sync })
-    if (githubFiles) {
-      githubFiles.forEach((file: GithubContent) => {
-        const index = cacheTree.findIndex(item => item.name === file.path.replace('article/', ''))
-        if (index !== -1) {
-          cacheTree[index].sha = file.sha
-        } else {
-          cacheTree.push({
-            name: file.path,
-            isFile: file.type === 'file',
-            isSymlink: false,
-            parent: undefined,
-            isEditing: false,
-            isDirectory: file.type === 'dir',
-            sha: file.sha,
-            isLocale: false,
-            children: file.type === 'file' ? undefined : []
-          })
-        }
-      });
-      set({ fileTree: cacheTree })
-      get().collapsibleList.forEach(async (item) => {
-        await get().loadCollapsibleFiles(item)
-      })
+    } else {
+      const githubFiles = await getFiles({ path: '', repo: RepoNames.sync })
+      if (githubFiles) {
+        githubFiles.forEach((file: GithubContent) => {
+          const index = dirs.findIndex(item => item.name === file.path.replace('article/', ''))
+          if (index !== -1) {
+            dirs[index].sha = file.sha
+          } else {
+            dirs.push({
+              name: file.path,
+              isFile: file.type === 'file',
+              isSymlink: false,
+              parent: undefined,
+              isEditing: false,
+              isDirectory: file.type === 'dir',
+              sha: file.sha,
+              isLocale: false,
+            })
+          }
+        });
+        set({ fileTree: dirs })
+        get().collapsibleList.forEach(async (item) => {
+          await get().loadCollapsibleFiles(item)
+        })
+      }
     }
     set({ fileTreeLoading: false })
   },
