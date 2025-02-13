@@ -19,8 +19,8 @@ export function FileItem({ item }: { item: DirTree }) {
   const { activeFilePath, setActiveFilePath, readArticle, setCurrentArticle, fileTree, setFileTree } = useArticleStore()
   
   const path = computedParentPath(item)
+  const folderPath = path.includes('/') ? path.split('/').slice(0, -1).join('/') : ''
   const cacheTree = cloneDeep(fileTree)
-  const folderPath = path.split('/').slice(0, -1).join('/')
   const currentFolder = getCurrentFolder(folderPath, cacheTree)
 
   function handleSelectFile() {
@@ -30,7 +30,12 @@ export function FileItem({ item }: { item: DirTree }) {
 
   async function handleDeleteFile() {
     await remove(`article/${path}`, { baseDir: BaseDirectory.AppData })
-    currentFolder?.children?.splice(currentFolder.children.findIndex(file => file.name === item.name), 1)
+    if (currentFolder) {
+      currentFolder?.children?.splice(currentFolder.children.findIndex(file => file.name === item.name), 1)
+    } else {
+      const index = cacheTree.findIndex(file => file.name === item.name)
+      cacheTree.splice(index, 1)
+    }
     setFileTree(cacheTree)
     setActiveFilePath('')
     setCurrentArticle('')
@@ -57,92 +62,41 @@ export function FileItem({ item }: { item: DirTree }) {
   }
 
   async function handleRename() {
-    // 将所有空格替换为下划线
-    let name = inputRef.current?.value.replace(/ /g, '_')
-    const cacheTree = cloneDeep(fileTree)
-    if (name && item.name && name !== item.name) {
-      if (item.parent) {
-        const parentIndex = cacheTree.findIndex(file => file.name === item.parent?.name)
-        const index = cacheTree[parentIndex].children?.findIndex(file => file.name === item.name)
-        if (index!== undefined && index!== -1) {
-          cacheTree[parentIndex].children?.splice(index, 1, {
-            name,
-            parent: item.parent,
-            isEditing: false,
-            isLocale: true,
-            isDirectory: false,
-            isFile: true,
-            isSymlink: false
-          })
-          setFileTree(cacheTree)
-          setActiveFilePath(item.parent.name + '/' + name)
+    setName(name.replace(/ /g, '_')) // github 存储空格会报错，替换为下划线
+    if (name && name !== item.name) {
+      if (currentFolder && currentFolder.children) {
+        const fileIndex = currentFolder?.children?.findIndex(file => file.name === item.name)
+        if (fileIndex !== undefined && fileIndex !== -1) {
+          currentFolder.children[fileIndex].name = name
         }
       } else {
-        await rename(`article/${item.name}`, `article/${name}` ,{ newPathBaseDir: BaseDirectory.AppData, oldPathBaseDir: BaseDirectory.AppData})
-        const cacheTree = cloneDeep(fileTree)
-        const index = cacheTree.findIndex(file => file.name === item.name)
-        if (index !== -1) {
-          cacheTree.splice(index, 1, {
-            name,
-            parent: item.parent,
-            isEditing: false,
-            isLocale: true,
-            isDirectory: false,
-            isFile: true,
-            isSymlink: false
-          })
-          setFileTree(cacheTree)
-          setActiveFilePath(name)
-        }
+        const fileIndex = cacheTree.findIndex(file => file.name === item.name)
+        cacheTree[fileIndex].name = name
       }
-    } else if (name) {
-      if (!name.endsWith('.md')) name = name + '.md'
-      if (item.parent) {
-        await writeTextFile(`article/${item.parent.name}/${name}`, '', { baseDir: BaseDirectory.AppData })
-        const parentIndex = cacheTree.findIndex(file => file.name === item.parent?.name)
-        cacheTree[parentIndex].children?.splice(0, 1, {
-          name,
-          parent: item.parent,
-          isEditing: false,
-          isLocale: true,
-          isDirectory: false,
-          isFile: true,
-          isSymlink: false
-        })
-        setFileTree(cacheTree)
-        setActiveFilePath(item.parent.name + '/' + name)
+      const oldPath = `article/${path}` 
+      const newPath = `article/${path.split('/').slice(0, -1).join('/')}/${name}`
+      if (newPath.includes('.md')) {
+        await rename(oldPath, newPath, { newPathBaseDir: BaseDirectory.AppData, oldPathBaseDir: BaseDirectory.AppData })
       } else {
-        await writeTextFile(`article/${name}`, '', { baseDir: BaseDirectory.AppData })
-        cacheTree.splice(0, 1, {
-          name,
-          parent: item.parent,
+        await writeTextFile(newPath + '.md', '', { baseDir: BaseDirectory.AppData })
+        const data = {
+          name: name + '.md',
+          isLocale: item.isLocale,
           isEditing: false,
-          isLocale: true,
           isDirectory: false,
-          isFile: true,
-          isSymlink: false
-        })
-        setFileTree(cacheTree)
-        setActiveFilePath(name)
-      }
-      setCurrentArticle('')
-      setIsEditing(false)
-    } else {
-      if (item.parent) {
-        const index = cacheTree.findIndex(file => file.name === item.parent?.name)
-        const fileIndex = cacheTree[index].children?.findIndex(file => file.name === item.name)
-        if (fileIndex!== undefined && fileIndex!== -1) {
-          cacheTree[index].children?.splice(fileIndex, 1)
+          isFile: false,
+          isSymlink: false,
+          sha: ''
         }
-        setFileTree(cacheTree)
-      } else {
-        const index = cacheTree.findIndex(file => file.name === item.name)
-        if (index!== -1) {
-          cacheTree.splice(index, 1)
+        if (currentFolder) {
+          currentFolder.children?.push(data)
+        } else {
+          cacheTree.push(data)
         }
-        setFileTree(cacheTree)
       }
     }
+    setFileTree(cacheTree)
+    setIsEditing(false)
   }
 
   async function handleShowFileManager() {

@@ -16,6 +16,9 @@ export function computedParentPath(item: DirTree) {
 }
 
 export function getCurrentFolder(path: string, fileTree: DirTree[]) {
+  if (path === '') {
+    return undefined
+  }
   let currentFolder: DirTree | undefined
   const levels = path.split('/')
 

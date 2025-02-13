@@ -88,6 +88,7 @@ export async function uploadFile(
 export async function getFiles({ path, repo }: { path: string, repo: RepoNames }) {
   const store = await Store.load('store.json');
   const accessToken = await store.get('accessToken')
+  if (!accessToken) return;
   const octokit = new Octokit({
     auth: accessToken
   })
