@@ -120,6 +120,7 @@ const useArticleStore = create<NoteState>((set, get) => ({
       }
     }
     set({ fileTree: dirs })
+    // 读取 github 同步文件
     const store = await Store.load('store.json');
     const accessToken = await store.get<string>('accessToken')
     if (!accessToken) {
@@ -127,6 +128,7 @@ const useArticleStore = create<NoteState>((set, get) => ({
       return
     } else {
       const githubFiles = await getFiles({ path: '', repo: RepoNames.sync })
+      console.log(githubFiles);
       if (githubFiles) {
         githubFiles.forEach((file: GithubContent) => {
           const index = dirs.findIndex(item => item.name === file.path.replace('article/', ''))
@@ -264,12 +266,12 @@ const useArticleStore = create<NoteState>((set, get) => ({
     }
     set({ collapsibleList: res || [] })
   },
-  setCollapsibleList: async (name: string, value: boolean) => {
+  setCollapsibleList: async (path: string, value: boolean) => {
     const collapsibleList = get().collapsibleList
     if (value) {
-      collapsibleList.push(name)
+      collapsibleList.push(path)
     } else {
-      collapsibleList.splice(collapsibleList.indexOf(name), 1)
+      collapsibleList.splice(collapsibleList.indexOf(path), 1)
     }
     const store = await Store.load('store.json');
     await store.set('collapsibleList', collapsibleList)

@@ -10,6 +10,7 @@ import { deleteFile } from "@/lib/github";
 import { RepoNames } from "@/lib/github.types";
 import { cloneDeep } from "lodash-es";
 import { open } from "@tauri-apps/plugin-shell";
+import { computedParentPath } from "@/lib/path";
 
 export function FileItem({ item }: { item: DirTree }) {
   const [isEditing, setIsEditing] = useState(item.isEditing)
@@ -17,16 +18,7 @@ export function FileItem({ item }: { item: DirTree }) {
   const inputRef = useRef<HTMLInputElement>(null)
   const { activeFilePath, setActiveFilePath, readArticle, setCurrentArticle, fileTree, setFileTree } = useArticleStore()
   
-  let path = item.name
-  function readParentPath(item: DirTree) {
-    if (item.parent) {
-      path = item.parent.name + '/' + path
-      if (item.parent.parent) {
-        readParentPath(item.parent)
-      }
-    }
-  }
-  readParentPath(item)
+  const path = computedParentPath(item)
 
   function handleSelectFile() {
     setActiveFilePath(path)

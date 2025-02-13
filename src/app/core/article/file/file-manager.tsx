@@ -13,14 +13,17 @@ import useArticleStore, { DirTree } from "@/stores/article"
 import { BaseDirectory, rename, writeTextFile } from "@tauri-apps/plugin-fs"
 import { FileItem } from './file-item'
 import { FolderItem } from "./folder-item"
+import { computedParentPath } from "@/lib/path"
 
 function Tree({ item }: { item: DirTree }) {
   const { collapsibleList, setCollapsibleList, loadCollapsibleFiles } = useArticleStore()
 
+  const path = computedParentPath(item)
+
   function handleCollapse(isOpen: boolean) {
-    setCollapsibleList(item.name, isOpen)
+    setCollapsibleList(path, isOpen)
     if (isOpen) {
-      loadCollapsibleFiles(item.name)
+      loadCollapsibleFiles(path)
     }
   }
 
@@ -31,7 +34,7 @@ function Tree({ item }: { item: DirTree }) {
       <Collapsible
           onOpenChange={handleCollapse}
           className="group/collapsible [&[data-state=open]>button>.file-manange-item>svg:first-child]:rotate-90"
-          open={collapsibleList.includes(item.name)}
+          open={collapsibleList.includes(path)}
         >
           <FolderItem item={item} />
           <CollapsibleContent className="pl-1">

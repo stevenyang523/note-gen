@@ -9,6 +9,7 @@ import { CollapsibleTrigger } from "@/components/ui/collapsible";
 import { toast } from "@/hooks/use-toast";
 import { cloneDeep } from "lodash-es";
 import { open } from "@tauri-apps/plugin-shell";
+import { computedParentPath } from "@/lib/path";
 
 export function FolderItem({ item }: { item: DirTree }) {
   const [isEditing, setIsEditing] = useState(item.isEditing)
@@ -17,16 +18,7 @@ export function FolderItem({ item }: { item: DirTree }) {
   const inputRef = useRef<HTMLInputElement>(null)
   const { activeFilePath, loadFileTree, setActiveFilePath, collapsibleList, setCollapsibleList, fileTree, setFileTree, newFileOnFolder } = useArticleStore()
 
-  let path = item.name
-  function readParentPath(item: DirTree) {
-    if (item.parent) {
-      path = item.parent.name + '/' + path
-      if (item.parent.parent) {
-        readParentPath(item.parent)
-      }
-    }
-  }
-  readParentPath(item)
+  const path = computedParentPath(item)
 
   async function handleDeleteFolder(evnet: React.MouseEvent<HTMLDivElement, MouseEvent>) {
     evnet.stopPropagation()
