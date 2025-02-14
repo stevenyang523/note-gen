@@ -197,22 +197,22 @@ const useArticleStore = create<NoteState>((set, get) => ({
   },
   newFile: async () => {
     // 判断 activeFilePath 是否存在 parent
-    if (get().activeFilePath.includes('/')) {
-      const dirPath = get().activeFilePath.split('/')[0]
-      const dirIndex = get().fileTree.findIndex(item => item.name === dirPath)
-      if (dirIndex!== undefined && dirIndex!== -1) {
-        const fileTree = get().fileTree
-        fileTree[dirIndex].isEditing = true
+    const path = get().activeFilePath;
+    const fileTree = get().fileTree;
+    if (path.includes('/')) {
+      const folderPath = path.includes('/') ? path.split('/').slice(0, -1).join('/') : ''
+      const currentFolder = getCurrentFolder(folderPath, fileTree)
+      if (currentFolder) {
         const newFile: DirTree = {
           name: '',
           isFile: true,
           isSymlink: false,
-          parent: fileTree[dirIndex],
+          parent: currentFolder,
           isEditing: true,
           isDirectory: false,
           isLocale: true,
         }
-        fileTree[dirIndex].children?.unshift(newFile)
+        currentFolder.children?.unshift(newFile)
         set({ fileTree })
       }
     } else {

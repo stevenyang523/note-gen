@@ -22,7 +22,6 @@ export function SettingTemplate({id, icon}: {id: string, icon?: React.ReactNode}
   const { templateList, setTemplateList } = useSettingStore()
 
   function changeHandler(current: GenTemplate, key: keyof GenTemplate, value: any) {
-    console.log(current, key, value);
     setTemplateList(templateList.map(item => {
       if (item.id === current.id) {
         return {...item, [key]: value}
