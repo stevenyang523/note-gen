@@ -1,7 +1,7 @@
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from "@/components/ui/context-menu";
 import { Input } from "@/components/ui/input";
 import useArticleStore, { DirTree } from "@/stores/article";
-import { BaseDirectory, remove, rename, writeTextFile } from "@tauri-apps/plugin-fs";
+import { BaseDirectory, exists, remove, rename, writeTextFile } from "@tauri-apps/plugin-fs";
 import { appDataDir } from '@tauri-apps/api/path';
 import { Cloud, CloudDownload, File } from "lucide-react"
 import { useEffect, useRef, useState } from "react";
@@ -11,6 +11,7 @@ import { RepoNames } from "@/lib/github.types";
 import { cloneDeep } from "lodash-es";
 import { open } from "@tauri-apps/plugin-shell";
 import { computedParentPath, getCurrentFolder } from "@/lib/path";
+import { toast } from "@/hooks/use-toast";
 
 export function FileItem({ item }: { item: DirTree }) {
   const [isEditing, setIsEditing] = useState(item.isEditing)
@@ -67,31 +68,26 @@ export function FileItem({ item }: { item: DirTree }) {
       if (currentFolder && currentFolder.children) {
         const fileIndex = currentFolder?.children?.findIndex(file => file.name === item.name)
         if (fileIndex !== undefined && fileIndex !== -1) {
-          currentFolder.children[fileIndex].name = name
+          currentFolder.children[fileIndex].name = name + '.md'
+          currentFolder.children[fileIndex].isEditing = false
         }
       } else {
         const fileIndex = cacheTree.findIndex(file => file.name === item.name)
-        cacheTree[fileIndex].name = name
+        cacheTree[fileIndex].name = name + '.md'
+        cacheTree[fileIndex].isEditing = false
       }
       const oldPath = `article/${path}` 
       const newPath = `article/${path.split('/').slice(0, -1).join('/')}/${name}`
       if (newPath.includes('.md')) {
         await rename(oldPath, newPath, { newPathBaseDir: BaseDirectory.AppData, oldPathBaseDir: BaseDirectory.AppData })
       } else {
-        await writeTextFile(newPath + '.md', '', { baseDir: BaseDirectory.AppData })
-        const data = {
-          name: name + '.md',
-          isLocale: item.isLocale,
-          isEditing: false,
-          isDirectory: false,
-          isFile: false,
-          isSymlink: false,
-          sha: ''
-        }
-        if (currentFolder) {
-          currentFolder.children?.push(data)
+        const isExists = await exists(newPath + '.md', { baseDir: BaseDirectory.AppData })
+        if (isExists) {
+          toast({ title: '文件名已存在' })
+          setTimeout(() => inputRef.current?.focus(), 300);
+          return
         } else {
-          cacheTree.push(data)
+          await writeTextFile(newPath + '.md', '', { baseDir: BaseDirectory.AppData })
         }
       }
     }
