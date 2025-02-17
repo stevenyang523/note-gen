@@ -1,7 +1,7 @@
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from "@/components/ui/context-menu";
 import { Input } from "@/components/ui/input";
 import useArticleStore, { DirTree } from "@/stores/article";
-import { BaseDirectory, mkdir, remove, rename } from "@tauri-apps/plugin-fs";
+import { BaseDirectory, exists, mkdir, remove, rename } from "@tauri-apps/plugin-fs";
 import { appDataDir } from '@tauri-apps/api/path';
 import { ChevronRight, Cloud, Folder, FolderDown } from "lucide-react"
 import { useEffect, useRef, useState } from "react";
@@ -29,7 +29,6 @@ export function FolderItem({ item }: { item: DirTree }) {
       await remove(`article/${path}`, { baseDir: BaseDirectory.AppData })
       if (parentFolder) {
         const index = parentFolder.children?.findIndex(folder => folder.name === currentFolder.name)
-        console.log(index);
         if (index!== -1 && index !== undefined && parentFolder.children) {
           parentFolder.children.splice(index, 1)
           setFileTree(cacheTree)
@@ -55,45 +54,42 @@ export function FolderItem({ item }: { item: DirTree }) {
     setTimeout(() => inputRef.current?.focus(), 0);
   }
 
+  // 创建或修改文件夹名称
   async function handleRename() {
-    const name = inputRef.current?.value.replace(/ /g, '_') as string
-    if (name !== '' && item.name && name !== item.name) {
-      if (name && name !== item.name) {
-        await loadFileTree()
+    setName(name.replace(/ /g, '_')) // github 存储空格会报错，替换为下划线
+    console.log(path);
+    console.log(name, item.name);
+    console.log(currentFolder);
+    // 修改文件夹名称
+    if (name && name !== item.name && item.name !== '') {
+      console.log('rename');
+      if (parentFolder && parentFolder.children) {
+        const folderIndex = parentFolder?.children?.findIndex(folder => folder.name === item.name)
+        if (folderIndex !== undefined && folderIndex !== -1) {
+          parentFolder.children[folderIndex].name = name
+          parentFolder.children[folderIndex].isEditing = false
+        }
+      } else {
+        const folderIndex = cacheTree.findIndex(folder => folder.name === item.name)
+        cacheTree[folderIndex].name = name
+        cacheTree[folderIndex].isEditing = false
       }
-      await rename(`article/${item.name}`, `article/${name}`, { newPathBaseDir: BaseDirectory.AppData, oldPathBaseDir: BaseDirectory.AppData })
-      const cacheTree = cloneDeep(fileTree)
-      const index = cacheTree.findIndex(file => file.name === item.name)
-      if (index !== -1) {
-        cacheTree.splice(index, 1, {
-          name,
-          parent: undefined,
-          isEditing: false,
-          isLocale: true,
-          isDirectory: true,
-          isFile: false,
-          isSymlink: false
-        })
-        setFileTree(cacheTree)
-      }
-    } else if (name !== '' && !fileTree.map(item => item.name).includes(name)) {
-      await mkdir(`article/${name}`, { baseDir: BaseDirectory.AppData })
-      const cacheTree = cloneDeep(fileTree)
-      cacheTree.splice(0, 1, {
-        name,
-        parent: undefined,
-        isEditing: false,
-        isLocale: true,
-        isDirectory: true,
-        isFile: false,
-        isSymlink: false
-      })
+      await rename(`article/${path}`, `article/${path.split('/').slice(0, -1).join('/')}/${name}`, { newPathBaseDir: BaseDirectory.AppData, oldPathBaseDir: BaseDirectory.AppData })
       setFileTree(cacheTree)
+      setIsEditing(false)
     } else {
-      fileTree.splice(0, 1)
-      setFileTree(fileTree)
+      console.log('mkdir');
+      // 新建文件夹
+      const isExists = await exists(`article/${path}/${name}`, { baseDir: BaseDirectory.AppData })
+      if (isExists) {
+        toast({ title: '文件夹名已存在' })
+        setTimeout(() => inputRef.current?.focus(), 300);
+      } else {
+        await mkdir(`article/${path}/${name}`, { baseDir: BaseDirectory.AppData })
+        loadFileTree()
+        setIsEditing(false)
+      }
     }
-    setIsEditing(false)
   }
 
   async function handleShowFileManager() {
