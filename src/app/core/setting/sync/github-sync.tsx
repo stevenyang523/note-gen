@@ -1,6 +1,6 @@
 'use client'
 import { Input } from "@/components/ui/input";
-import { FormItem, SettingPanel, SettingRow, SettingType } from "../components/setting-base";
+import { FormItem, SettingPanel, SettingRow } from "../components/setting-base";
 import { useEffect } from "react";
 import { useTranslations } from 'next-intl';
 import useSettingStore from "@/stores/setting";
@@ -15,7 +15,7 @@ import { Switch } from "@/components/ui/switch";
 
 dayjs.extend(relativeTime)
 
-export function SettingSync({id, icon}: {id: string, icon?: React.ReactNode}) {
+export function GithubSync() {
   const t = useTranslations();
   const { accessToken, setAccessToken, useImageRepo, setUseImageRepo, jsdelivr, setJsdelivr, autoSync, setAutoSync } = useSettingStore()
   const {
@@ -56,7 +56,7 @@ export function SettingSync({id, icon}: {id: string, icon?: React.ReactNode}) {
   }, [])
 
   return (
-    <SettingType id={id} icon={icon} title={t('settings.sync.title')} desc={t('settings.sync.desc')}>
+    <>
       <SettingRow>
         <FormItem title="Github Access Token" desc={t('settings.sync.newTokenDesc')}>
           <OpenBroswer url="https://github.com/settings/tokens/new" title={t('settings.sync.newToken')} className="mb-2" />
@@ -142,6 +142,6 @@ export function SettingSync({id, icon}: {id: string, icon?: React.ReactNode}) {
           </SettingPanel>
         </>
       }
-    </SettingType>
+    </>
   )
 }

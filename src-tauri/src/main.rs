@@ -2,10 +2,13 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 mod screenshot;
 use screenshot::{screenshot, screenshot_save};
+mod webdav;
+use webdav::webdav_test;
 use tauri::{
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
     Manager,
 };
+
 
 fn main() {
     tauri::Builder::default()
@@ -36,7 +39,7 @@ fn main() {
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_clipboard::init())
-        .invoke_handler(tauri::generate_handler![screenshot, screenshot_save,])
+        .invoke_handler(tauri::generate_handler![screenshot, screenshot_save, webdav_test])
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_sql::Builder::default().build())

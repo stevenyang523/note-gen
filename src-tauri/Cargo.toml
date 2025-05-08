@@ -30,6 +30,7 @@ tauri-plugin-clipboard = "2"
 tauri-plugin-dialog = "2"
 tauri-plugin-http = { version = "2.2.0", features = ["unsafe-headers"] }
 tauri-plugin-os = "2"
+reqwest_dav = "=0.2.1"
 
 [dependencies.tauri-plugin-sql]
 features = ["sqlite"]
