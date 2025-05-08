@@ -27,8 +27,14 @@ interface WebDAVState {
   testConnection: () => Promise<boolean>
   initWebDAVData: () => Promise<void>
 
-  backupToWebDAV: () => Promise<boolean>
-  syncFromWebDAV: () => Promise<boolean>
+  backupState: boolean
+  setBackupState: (state: boolean) => void
+
+  syncState: boolean
+  setSyncState: (state: boolean) => void
+  
+  backupToWebDAV: () => Promise<string>
+  syncFromWebDAV: () => Promise<string>
 }
 
 const useWebDAVStore = create<WebDAVState>((set, get) => ({
@@ -90,7 +96,7 @@ const useWebDAVStore = create<WebDAVState>((set, get) => ({
       set({ connectionState: result ? WebDAVConnectionState.success : WebDAVConnectionState.fail })
       return result
     } catch (error) {
-      console.log('WebDAV connection test failed:', error)
+      console.info('WebDAV connection test failed:', error)
       set({ connectionState: WebDAVConnectionState.fail })
       return false
     }
@@ -114,59 +120,55 @@ const useWebDAVStore = create<WebDAVState>((set, get) => ({
     get().testConnection()
   },
 
+  backupState: false,
+  setBackupState: (state: boolean) => {
+    set({ backupState: state })
+  },
+
+  syncState: false,
+  setSyncState: (state: boolean) => {
+    set({ syncState: state })
+  },
+
   // 备份到WebDAV
   backupToWebDAV: async () => {
     const { url, username, password, path } = get()
-    
-    if (!url || !username || !password) {
-      set({ connectionState: WebDAVConnectionState.fail })
-      return false
-    }
-    
-    set({ connectionState: WebDAVConnectionState.checking })
-    
+    get().setBackupState(true)
     try {
-      const result = await invoke<boolean>('webdav_backup', {
+      const result = await invoke<string>('webdav_backup', {
         url,
         username,
         password,
         path
       })
-      
-      set({ connectionState: result ? WebDAVConnectionState.success : WebDAVConnectionState.fail })
+
       return result
     } catch (error) {
       console.error('WebDAV connection test failed:', error)
-      set({ connectionState: WebDAVConnectionState.fail })
-      return false
+      return ''
+    } finally {
+      get().setBackupState(false)
     }
   },
 
   // 从WebDAV同步
   syncFromWebDAV: async () => {
     const { url, username, password, path } = get()
-    
-    if (!url || !username || !password) {
-      set({ connectionState: WebDAVConnectionState.fail })
-      return false
-    }
-    
-    set({ connectionState: WebDAVConnectionState.checking })
-    
+    get().setSyncState(true)
     try {
-      const result = await invoke<boolean>('webdav_sync', {
+      const result = await invoke<string>('webdav_sync', {
         url,
         username,
         password,
         path
       })
       
-      set({ connectionState: result ? WebDAVConnectionState.success : WebDAVConnectionState.fail })
       return result
     } catch (error) {
       console.error('WebDAV connection test failed:', error)
-      set({ connectionState: WebDAVConnectionState.fail })
-      return false
+      return ''
+    } finally {
+      get().setSyncState(false)
     }
   }
 }))

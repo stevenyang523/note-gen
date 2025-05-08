@@ -1,13 +1,15 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FormItem, SettingRow } from "../components/setting-base";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Upload, Download } from "lucide-react";
+import { Upload, Download, Terminal, LoaderCircle } from "lucide-react";
 import useWebDAVStore, { WebDAVConnectionState } from "@/stores/webdav";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export default function WebdavSync() {
+  const [result, setResult] = useState<string | null>(null);
   const { 
     url, setUrl,
     username, setUsername,
@@ -16,7 +18,9 @@ export default function WebdavSync() {
     connectionState, 
     backupToWebDAV,
     syncFromWebDAV,
-    initWebDAVData
+    initWebDAVData,
+    syncState,
+    backupState
   } = useWebDAVStore();
 
   useEffect(() => {
@@ -37,6 +41,22 @@ export default function WebdavSync() {
 
   const handlePathChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPath(e.target.value);
+  };
+
+  const handleBackupToWebDAV = async () => {
+    const res = await backupToWebDAV();
+    setResult(res);
+    setTimeout(() => {
+      setResult(null);
+    }, 3000);
+  };
+
+  const handleSyncFromWebDAV = async () => {
+    const res = await syncFromWebDAV();
+    setResult(res);
+    setTimeout(() => {
+      setResult(null);
+    }, 3000);
   };
 
   return (
@@ -60,30 +80,53 @@ export default function WebdavSync() {
                     {connectionState}
                   </Badge>
                 </CardTitle>
-                <CardDescription>WebDav 仅作为备用备份方案，不支持自动同步、历史回滚等功能。</CardDescription>
+                <CardDescription>WebDAV 仅作为备用备份方案，不支持自动同步、历史回滚等功能。</CardDescription>
               </CardHeader>
               <CardContent className="flex gap-4">
                 <Button 
-                  onClick={() => backupToWebDAV()} 
+                  onClick={handleBackupToWebDAV} 
                   variant="outline" 
                   className="mt-2"
-                  disabled={connectionState === WebDAVConnectionState.checking}
+                  disabled={backupState || syncState}
                 >
-                  <Upload className={`mr-2 h-4 w-4 ${connectionState === WebDAVConnectionState.checking ? 'animate-spin' : ''}`} />
-                  备份至WebDAV
+                  {
+                    backupState ? (
+                      <LoaderCircle className="animate-spin" />
+                    ) : (
+                      <Upload />
+                    )
+                  }
+                  备份至 WebDAV
                 </Button>
                 <Button 
-                  onClick={() => syncFromWebDAV()} 
+                  onClick={handleSyncFromWebDAV} 
                   variant="outline" 
                   className="mt-2"
-                  disabled={connectionState === WebDAVConnectionState.checking}
+                  disabled={syncState || backupState}
                 >
-                  <Download className={`mr-2 h-4 w-4 ${connectionState === WebDAVConnectionState.checking ? 'animate-spin' : ''}`} />
-                  从WebDAV同步
+                  {
+                    syncState ? (
+                      <LoaderCircle className="animate-spin" />
+                    ) : (
+                      <Download />
+                    )
+                  }
+                  从 WebDAV 同步
                 </Button>
               </CardContent>
             </Card>
           </div>
+          {
+            result !== null && (
+              <Alert className="mt-4">
+                <Terminal className="h-4 w-4" />
+                <AlertTitle>同步结束</AlertTitle>
+                <AlertDescription>
+                  已同步 {result} 个文件至 WebDAV。
+                </AlertDescription>
+              </Alert>
+            )
+          }
         </FormItem>
       </SettingRow>
       <SettingRow>

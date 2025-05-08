@@ -3,7 +3,7 @@
 mod screenshot;
 use screenshot::{screenshot, screenshot_save};
 mod webdav;
-use webdav::webdav_test;
+use webdav::{webdav_test, webdav_backup};
 use tauri::{
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
     Manager,
@@ -39,7 +39,7 @@ fn main() {
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_clipboard::init())
-        .invoke_handler(tauri::generate_handler![screenshot, screenshot_save, webdav_test])
+        .invoke_handler(tauri::generate_handler![screenshot, screenshot_save, webdav_test, webdav_backup])
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_sql::Builder::default().build())
