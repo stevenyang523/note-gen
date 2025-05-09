@@ -2808,6 +2808,7 @@ name = "note-gen"
 version = "0.13.7"
 dependencies = [
  "chrono",
+ "percent-encoding",
  "reqwest_dav",
  "serde",
  "serde_json",

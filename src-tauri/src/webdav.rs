@@ -2,6 +2,7 @@ use reqwest_dav::{Auth, Client, ClientBuilder, Depth};
 use std::path::{Path, PathBuf};
 use tauri::{AppHandle, Manager};
 use std::fs;
+use percent_encoding::percent_decode_str;
 
 fn create_client(url: &str, username: &str, password: &str) -> Result<Client, String> {
     let host_url = if url.ends_with('/') {
@@ -234,13 +235,8 @@ pub async fn webdav_sync(url: String, username: String, password: String, path: 
         Err(e) => return Err(format!("Failed to list WebDAV directory: {}", e)),
     };
 
-    println!("entries: {:#?}", entries);
-
     // 获取工作区路径信息
     let (workspace_dir, is_custom_workspace) = get_workspace_info(&app).await?;
-
-    println!("workspace_dir: {}", workspace_dir);
-    println!("is_custom_workspace: {}", is_custom_workspace);
     
     let mut success_count = 0;
     let mut markdown_files: Vec<(String, String)> = Vec::new();
@@ -287,11 +283,7 @@ pub async fn webdav_sync(url: String, username: String, password: String, path: 
         }
     }
 
-    println!("markdown_files: {:#?}", markdown_files);
-    
     let total_files = markdown_files.len();
-
-    println!("total_files: {}", total_files);
     
     // 下载并保存文件
     for (remote_path, relative_path) in markdown_files {
@@ -315,8 +307,6 @@ pub async fn webdav_sync(url: String, username: String, password: String, path: 
             }
         };
 
-        println!("Response: {:#?}", response);
-        
         // 获取响应体内容
         let bytes = match response.bytes().await {
             Ok(bytes) => bytes.to_vec(),
@@ -326,17 +316,18 @@ pub async fn webdav_sync(url: String, username: String, password: String, path: 
             }
         };
 
-        println!("relative_path: {}", relative_path);
-
         let output_path = relative_path
             .trim_start_matches(&prefix.trim_start_matches('/'))
             .trim_start_matches(&webdav_path);
-
-        println!("output_path: {}", output_path);
         
+        // URL解码路径，确保中文字符正确处理
+        let decoded_path = percent_decode_str(output_path)
+            .decode_utf8()
+            .unwrap_or_else(|_| output_path.into())
+            .to_string();
+            
         // 确定本地文件路径
-        let local_file_path = get_local_file_path(&output_path, &workspace_dir, is_custom_workspace, &app)?;
-        println!("local_file_path: {}", local_file_path.display());
+        let local_file_path = get_local_file_path(&decoded_path, &workspace_dir, is_custom_workspace, &app)?;
         
         // 确保父目录存在
         if let Some(parent) = local_file_path.parent() {

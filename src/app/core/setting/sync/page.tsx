@@ -14,7 +14,7 @@ export default function SyncPage() {
       <Tabs defaultValue="Github">
         <TabsList className="grid grid-cols-2 w-[400px] mb-8">
           <TabsTrigger value="Github">Github</TabsTrigger>
-          <TabsTrigger value="Webdav">Webdav（备用）</TabsTrigger>
+          <TabsTrigger value="Webdav">Webdav</TabsTrigger>
         </TabsList>
         <TabsContent value="Github">
         <GithubSync />
