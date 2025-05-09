@@ -1,5 +1,5 @@
 use reqwest_dav::{Auth, Client, ClientBuilder, Depth};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use tauri::{AppHandle, Manager};
 use std::fs;
 
@@ -107,6 +107,49 @@ async fn _get_markdown_files(dir_path: &str, is_custom_workspace: bool, app_hand
     Ok(markdown_files)
 }
 
+// 获取工作区路径信息
+async fn get_workspace_info(app: &AppHandle) -> Result<(String, bool), String> {
+    let store_path = app.path().app_config_dir()
+        .map_err(|e| format!("Failed to get config dir: {}", e))?
+        .join("store.json");
+    
+    let store_contents = fs::read_to_string(&store_path)
+        .map_err(|e| format!("Failed to read store file: {}", e))?;
+
+    let store_json: serde_json::Value = serde_json::from_str(&store_contents)
+        .map_err(|e| format!("Failed to parse store JSON: {}", e))?;
+
+    let store_workspace_path = store_json.get("workspacePath").and_then(|v| v.as_str()).unwrap_or("article");
+
+    let workspace_path = if store_workspace_path.is_empty() {
+        ("article".to_string(), false)
+    } else {
+        (store_workspace_path.to_string(), true)
+    };
+    
+    Ok(workspace_path)
+}
+
+// 获取本地文件路径
+fn get_local_file_path(relative_path: &str, workspace_path: &str, is_custom_workspace: bool, app: &AppHandle) -> Result<PathBuf, String> {
+    if is_custom_workspace {
+        Ok(PathBuf::from(workspace_path).join(relative_path))
+    } else {
+        let app_data_dir = app.path().app_data_dir()
+            .map_err(|e| format!("Failed to get app data dir: {}", e))?;
+        Ok(app_data_dir.join(workspace_path).join(relative_path))
+    }
+}
+
+// 确保目录存在
+fn ensure_directory_exists(dir_path: &Path) -> Result<(), String> {
+    if !dir_path.exists() {
+        fs::create_dir_all(dir_path)
+            .map_err(|e| format!("Failed to create directory {}: {}", dir_path.display(), e))?
+    }
+    Ok(())
+}
+
 #[tauri::command]
 pub async fn webdav_backup(url: String, username: String, password: String, path: String, app: AppHandle) -> Result<String, String> {
     let client = match create_client(&url, &username, &password) {
@@ -126,24 +169,7 @@ pub async fn webdav_backup(url: String, username: String, password: String, path
         }
     }
     
-    let store_path = app.path().app_config_dir()
-        .map_err(|e| format!("Failed to get config dir: {}", e))?
-        .join("store.json");
-    
-    let store_contents = fs::read_to_string(&store_path)
-        .map_err(|e| format!("Failed to read store file: {}", e))?;
-
-    let store_json: serde_json::Value = serde_json::from_str(&store_contents)
-        .map_err(|e| format!("Failed to parse store JSON: {}", e))?;
-
-    let store_workspace_path = store_json.get("workspacePath").and_then(|v| v.as_str()).unwrap_or("article");
-
-    let workspace_path = if store_workspace_path.is_empty() {
-        ("article".to_string(), false)
-    } else {
-        (store_workspace_path.to_string(), true)
-    };
-
+    let workspace_path = get_workspace_info(&app).await?;
     let markdown_files = get_markdown_files(&workspace_path.0, workspace_path.1, &app).await?;
     
     let mut success_count = 0;
@@ -169,6 +195,146 @@ pub async fn webdav_backup(url: String, username: String, password: String, path
         }
         
         success_count += 1;
+    }
+    
+    Ok(format!("{}/{}", success_count, total_files))
+}
+
+#[tauri::command]
+pub async fn webdav_sync(url: String, username: String, password: String, path: String, app: AppHandle) -> Result<String, String> {
+    // 创建WebDAV客户端
+    let client = match create_client(&url, &username, &password) {
+        Ok(client) => client,
+        Err(e) => return Err(e),
+    };
+    
+    // 处理WebDAV路径
+    let webdav_path = if path.starts_with('/') {
+        path[1..].to_string()
+    } else {
+        path.clone()
+    };
+
+    // 检查WebDAV路径是否存在
+    let entries = match client.list(&webdav_path, Depth::Infinity).await {
+        Ok(entries) => entries,
+        Err(e) => return Err(format!("Failed to list WebDAV directory: {}", e)),
+    };
+
+    // 获取工作区路径信息
+    let (workspace_dir, is_custom_workspace) = get_workspace_info(&app).await?;
+
+    println!("workspace_dir: {}", workspace_dir);
+    println!("is_custom_workspace: {}", is_custom_workspace);
+    
+    let mut success_count = 0;
+    let mut markdown_files: Vec<(String, String)> = Vec::new();
+    
+    // 遍历所有条目并提取Markdown文件路径
+    for entry in &entries {
+        // 使用序列化格式提取路径
+        let entry_json = serde_json::to_value(entry).unwrap_or(serde_json::Value::Null);
+        println!("entry_json: {:#?}", entry_json);
+        
+        // 处理嵌套结构，提取href字段
+        let path_str = if let Some(file) = entry_json.get("File") {
+            // 从 File 对象中提取 href
+            if let Some(href) = file.get("href").and_then(|v| v.as_str()) {
+                href.to_string()
+            } else {
+                continue;
+            }
+        } else if let Some(folder) = entry_json.get("Folder") {
+            // 从 Folder 对象中提取 href
+            if let Some(href) = folder.get("href").and_then(|v| v.as_str()) {
+                href.to_string()
+            } else {
+                continue;
+            }
+        } else {
+            continue;
+        };
+
+        println!("path_str: {}", path_str);
+        
+        // 只处理Markdown文件
+        if path_str.ends_with(".md") {
+            // 计算相对路径，去除WebDAV基础路径
+            let relative_path = if path_str.starts_with(&webdav_path) {
+                path_str[webdav_path.len()..].trim_start_matches('/')
+            } else {
+                path_str.trim_start_matches('/')
+            }.to_string();
+            
+            if !relative_path.is_empty() {
+                markdown_files.push((path_str, relative_path));
+            }
+        }
+    }
+
+    println!("markdown_files: {:#?}", markdown_files);
+    
+    let total_files = markdown_files.len();
+
+    println!("total_files: {}", total_files);
+    
+    // 下载并保存文件
+    for (remote_path, relative_path) in markdown_files {
+        // 处理路径编码问题
+        let encoded_path = if remote_path.contains("%") {
+            // 如果路径已经包含百分号，则可能已经编码过
+            remote_path.clone()
+        } else {
+            // 否则尝试对路径进行编码
+            let parts: Vec<&str> = remote_path.split('/').collect();
+            let mut encoded_parts = Vec::new();
+            
+            for part in parts {
+                if part.is_empty() {
+                    encoded_parts.push("".to_string());
+                } else {
+                    // 对非空路径部分进行 URL 编码
+                    let encoded = urlencoding::encode(part);
+                    encoded_parts.push(encoded.to_string());
+                }
+            }
+            
+            encoded_parts.join("/")
+        };
+        
+        println!("Downloading file from: {}", encoded_path);
+        
+        // 获取文件内容
+        let response = match client.get(&encoded_path).await {
+            Ok(response) => response,
+            Err(e) => {
+                eprintln!("Failed to download file {}: {}", remote_path, e);
+                continue;
+            }
+        };
+        
+        // 获取响应体内容
+        let bytes = match response.bytes().await {
+            Ok(bytes) => bytes.to_vec(),
+            Err(e) => {
+                eprintln!("Failed to read response body for {}: {}", remote_path, e);
+                continue;
+            }
+        };
+        
+        // 确定本地文件路径
+        let local_file_path = get_local_file_path(&relative_path, &workspace_dir, is_custom_workspace, &app)?;
+        
+        // 确保父目录存在
+        if let Some(parent) = local_file_path.parent() {
+            ensure_directory_exists(parent)?;
+        }
+        
+        // 写入文件
+        match fs::write(&local_file_path, &bytes) {
+            Ok(_) => success_count += 1,
+            Err(e) => eprintln!("Failed to write file {}: {}", local_file_path.display(), e),
+        };
     }
     
     Ok(format!("{}/{}", success_count, total_files))
