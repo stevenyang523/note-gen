@@ -200,6 +200,19 @@ pub async fn webdav_backup(url: String, username: String, password: String, path
     Ok(format!("{}/{}", success_count, total_files))
 }
 
+fn extract_prefix(remote_path: &str, webdav_path: &str) -> String {
+    // 确保 webdav_path 不以 '/' 开头，因为我们想匹配中间部分
+    let webdav_path_trimmed = webdav_path.trim_start_matches('/');
+    
+    // 查找 webdav_path 在 remote_path 中的位置
+    if let Some(pos) = remote_path.find(webdav_path_trimmed) {
+        // 提取前缀部分
+        remote_path[..pos].to_string()
+    } else {
+        "".to_string()
+    }
+}
+
 #[tauri::command]
 pub async fn webdav_sync(url: String, username: String, password: String, path: String, app: AppHandle) -> Result<String, String> {
     // 创建WebDAV客户端
@@ -220,6 +233,8 @@ pub async fn webdav_sync(url: String, username: String, password: String, path: 
         Ok(entries) => entries,
         Err(e) => return Err(format!("Failed to list WebDAV directory: {}", e)),
     };
+
+    println!("entries: {:#?}", entries);
 
     // 获取工作区路径信息
     let (workspace_dir, is_custom_workspace) = get_workspace_info(&app).await?;
@@ -280,38 +295,25 @@ pub async fn webdav_sync(url: String, username: String, password: String, path: 
     
     // 下载并保存文件
     for (remote_path, relative_path) in markdown_files {
-        // 处理路径编码问题
-        let encoded_path = if remote_path.contains("%") {
-            // 如果路径已经包含百分号，则可能已经编码过
-            remote_path.clone()
-        } else {
-            // 否则尝试对路径进行编码
-            let parts: Vec<&str> = remote_path.split('/').collect();
-            let mut encoded_parts = Vec::new();
-            
-            for part in parts {
-                if part.is_empty() {
-                    encoded_parts.push("".to_string());
-                } else {
-                    // 对非空路径部分进行 URL 编码
-                    let encoded = urlencoding::encode(part);
-                    encoded_parts.push(encoded.to_string());
-                }
-            }
-            
-            encoded_parts.join("/")
-        };
-        
-        println!("Downloading file from: {}", encoded_path);
-        
-        // 获取文件内容
-        let response = match client.get(&encoded_path).await {
+        // 从完整路径中提取相对路径，去除URL前缀
+        println!("webdav_path: {}", webdav_path);
+        // 通过 remote_path 获取到 webdav_path 前的字符串
+        let prefix = extract_prefix(&remote_path, &webdav_path);
+        println!("prefix: {:#?}", prefix);
+        // 移除 remote_path 的 prefix 部分
+        let path_for_request = remote_path.trim_start_matches(&prefix);
+        println!("path_for_request: {}", path_for_request);
+
+        // 获取文件内容 - 使用 path_for_request 而不是完整的URL路径
+        let response = match client.get(path_for_request).await {
             Ok(response) => response,
             Err(e) => {
                 eprintln!("Failed to download file {}: {}", remote_path, e);
                 continue;
             }
         };
+
+        println!("Response: {:#?}", response);
         
         // 获取响应体内容
         let bytes = match response.bytes().await {
