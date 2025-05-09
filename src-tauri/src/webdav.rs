@@ -295,6 +295,8 @@ pub async fn webdav_sync(url: String, username: String, password: String, path: 
     
     // 下载并保存文件
     for (remote_path, relative_path) in markdown_files {
+        println!("remote_path: {}", remote_path);
+        println!("relative_path: {}", relative_path);
         // 从完整路径中提取相对路径，去除URL前缀
         println!("webdav_path: {}", webdav_path);
         // 通过 remote_path 获取到 webdav_path 前的字符串
@@ -323,9 +325,18 @@ pub async fn webdav_sync(url: String, username: String, password: String, path: 
                 continue;
             }
         };
+
+        println!("relative_path: {}", relative_path);
+
+        let output_path = relative_path
+            .trim_start_matches(&prefix.trim_start_matches('/'))
+            .trim_start_matches(&webdav_path);
+
+        println!("output_path: {}", output_path);
         
         // 确定本地文件路径
-        let local_file_path = get_local_file_path(&relative_path, &workspace_dir, is_custom_workspace, &app)?;
+        let local_file_path = get_local_file_path(&output_path, &workspace_dir, is_custom_workspace, &app)?;
+        println!("local_file_path: {}", local_file_path.display());
         
         // 确保父目录存在
         if let Some(parent) = local_file_path.parent() {
