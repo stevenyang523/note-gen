@@ -1,15 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FormItem, SettingRow } from "../components/setting-base";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Upload, Download, Terminal, LoaderCircle } from "lucide-react";
+import { Upload, Download, LoaderCircle } from "lucide-react";
 import useWebDAVStore, { WebDAVConnectionState } from "@/stores/webdav";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { toast } from "@/hooks/use-toast";
 
 export default function WebdavSync() {
-  const [result, setResult] = useState<string | null>(null);
   const { 
     url, setUrl,
     username, setUsername,
@@ -45,18 +44,18 @@ export default function WebdavSync() {
 
   const handleBackupToWebDAV = async () => {
     const res = await backupToWebDAV();
-    setResult(res);
-    setTimeout(() => {
-      setResult(null);
-    }, 3000);
+    toast({
+      title: "备份成功",
+      description: `已备份 ${res} 个文件至 WebDAV。`,
+    });
   };
 
   const handleSyncFromWebDAV = async () => {
     const res = await syncFromWebDAV();
-    setResult(res);
-    setTimeout(() => {
-      setResult(null);
-    }, 3000);
+    toast({
+      title: "同步成功",
+      description: `已从 WebDAV 同步至本地 ${res} 个文件。`,
+    });
   };
 
   return (
@@ -116,17 +115,6 @@ export default function WebdavSync() {
               </CardContent>
             </Card>
           </div>
-          {
-            result !== null && (
-              <Alert className="mt-4">
-                <Terminal className="h-4 w-4" />
-                <AlertTitle>同步结束</AlertTitle>
-                <AlertDescription>
-                  已同步 {result} 个文件至 WebDAV。
-                </AlertDescription>
-              </Alert>
-            )
-          }
         </FormItem>
       </SettingRow>
       <SettingRow>

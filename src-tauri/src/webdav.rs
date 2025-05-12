@@ -1,4 +1,4 @@
-use reqwest_dav::{Auth, Client, ClientBuilder, Depth};
+use reqwest_dav::{list_cmd::ListEntity, Auth, Client, ClientBuilder, Depth};
 use std::path::{Path, PathBuf};
 use tauri::{AppHandle, Manager};
 use std::fs;
@@ -53,9 +53,6 @@ async fn get_markdown_files(dir_path: &str, is_custom_workspace: bool, app_handl
 async fn _get_markdown_files(dir_path: &str, is_custom_workspace: bool, app_handle: &AppHandle) -> Result<Vec<(String, String)>, String> {
     let mut markdown_files = Vec::new();
 
-    println!("dir_path: {}", dir_path);
-    println!("is_custom_workspace: {}", is_custom_workspace);
-    
     let entries = if is_custom_workspace {
         fs::read_dir(dir_path)
             .map_err(|e| format!("Failed to read directory {}: {}", dir_path, e))?            
@@ -71,8 +68,6 @@ async fn _get_markdown_files(dir_path: &str, is_custom_workspace: bool, app_hand
             .map_err(|e| format!("Failed to collect directory entries: {}", e))?
     };
 
-    println!("Entries: {:#?}", entries);
-    
     for entry in entries {
         let path = entry.path();
         let file_name = path.file_name().unwrap().to_string_lossy().to_string();
@@ -214,6 +209,72 @@ fn extract_prefix(remote_path: &str, webdav_path: &str) -> String {
     }
 }
 
+async fn get_webdav_markdown_files(entries: Vec<ListEntity>, webdav_path: &str, client: &Client) -> Result<Vec<(String, String)>, String> {
+    let mut markdown_files: Vec<(String, String)> = Vec::new();
+    
+    // 遍历所有条目并提取Markdown文件路径
+    for entry in entries {
+        // 使用序列化格式提取路径
+        let entry_json = serde_json::to_value(entry).unwrap_or(serde_json::Value::Null);
+        
+        // 处理嵌套结构，提取href字段
+        // 处理文件
+        if let Some(file) = entry_json.get("File") {
+            // 从 File 对象中提取 href
+            if let Some(href) = file.get("href").and_then(|v| v.as_str()) {
+                let path_str = href.to_string();
+                
+                // 只处理Markdown文件
+                if path_str.ends_with(".md") {
+                    // 计算相对路径，去除WebDAV基础路径
+                    let relative_path = if path_str.starts_with(webdav_path) {
+                        path_str[webdav_path.len()..].trim_start_matches('/')
+                    } else {
+                        path_str.trim_start_matches('/')
+                    }.to_string();
+                    
+                    if !relative_path.is_empty() {
+                        markdown_files.push((path_str, relative_path));
+                    }
+                }
+            }
+        } 
+        // 处理文件夹
+        else if let Some(folder) = entry_json.get("Folder") {
+            // 从 Folder 对象中提取 href
+            if let Some(href) = folder.get("href").and_then(|v| v.as_str()) {
+                let folder_path = href.to_string();
+                // 去除 WebDAV 基础路径 extract_prefix
+                let prefix = extract_prefix(&folder_path, webdav_path);
+                let path_for_request = folder_path.trim_start_matches(&prefix);
+                // 递归获取子目录中的Markdown文件
+                let entries = match client.list(&path_for_request, Depth::Infinity).await {
+                    Ok(entries) => entries,
+                    Err(e) => return Err(format!("Failed to list WebDAV directory: {}", e)),
+                };
+                
+                // 如果 folder_path == prefix + webdav_path，说明是根目录，不进入循环
+                
+                if folder_path == prefix.clone() + webdav_path {
+                    continue;
+                }
+                
+                // Use Box::pin to handle recursive async call
+                let sub_markdown_files = Box::pin(
+                    get_webdav_markdown_files(entries, &path_for_request, client)
+                ).await?;
+                
+                // 将子目录中的Markdown文件添加到结果中
+                markdown_files.extend(sub_markdown_files);
+            }
+        }
+        
+        // 已经在各自的分支中处理了文件和文件夹
+    }
+
+    Ok(markdown_files)
+}
+
 #[tauri::command]
 pub async fn webdav_sync(url: String, username: String, password: String, path: String, app: AppHandle) -> Result<String, String> {
     // 创建WebDAV客户端
@@ -239,64 +300,17 @@ pub async fn webdav_sync(url: String, username: String, password: String, path: 
     let (workspace_dir, is_custom_workspace) = get_workspace_info(&app).await?;
     
     let mut success_count = 0;
-    let mut markdown_files: Vec<(String, String)> = Vec::new();
-    
-    // 遍历所有条目并提取Markdown文件路径
-    for entry in &entries {
-        // 使用序列化格式提取路径
-        let entry_json = serde_json::to_value(entry).unwrap_or(serde_json::Value::Null);
-        println!("entry_json: {:#?}", entry_json);
-        
-        // 处理嵌套结构，提取href字段
-        let path_str = if let Some(file) = entry_json.get("File") {
-            // 从 File 对象中提取 href
-            if let Some(href) = file.get("href").and_then(|v| v.as_str()) {
-                href.to_string()
-            } else {
-                continue;
-            }
-        } else if let Some(folder) = entry_json.get("Folder") {
-            // 从 Folder 对象中提取 href
-            if let Some(href) = folder.get("href").and_then(|v| v.as_str()) {
-                href.to_string()
-            } else {
-                continue;
-            }
-        } else {
-            continue;
-        };
-
-        println!("path_str: {}", path_str);
-        
-        // 只处理Markdown文件
-        if path_str.ends_with(".md") {
-            // 计算相对路径，去除WebDAV基础路径
-            let relative_path = if path_str.starts_with(&webdav_path) {
-                path_str[webdav_path.len()..].trim_start_matches('/')
-            } else {
-                path_str.trim_start_matches('/')
-            }.to_string();
-            
-            if !relative_path.is_empty() {
-                markdown_files.push((path_str, relative_path));
-            }
-        }
-    }
+    let markdown_files = get_webdav_markdown_files(entries, &webdav_path, &client).await?;
 
     let total_files = markdown_files.len();
     
     // 下载并保存文件
     for (remote_path, relative_path) in markdown_files {
-        println!("remote_path: {}", remote_path);
-        println!("relative_path: {}", relative_path);
         // 从完整路径中提取相对路径，去除URL前缀
-        println!("webdav_path: {}", webdav_path);
         // 通过 remote_path 获取到 webdav_path 前的字符串
         let prefix = extract_prefix(&remote_path, &webdav_path);
-        println!("prefix: {:#?}", prefix);
         // 移除 remote_path 的 prefix 部分
         let path_for_request = remote_path.trim_start_matches(&prefix);
-        println!("path_for_request: {}", path_for_request);
 
         // 获取文件内容 - 使用 path_for_request 而不是完整的URL路径
         let response = match client.get(path_for_request).await {
