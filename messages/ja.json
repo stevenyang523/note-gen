@@ -15,7 +15,9 @@
     "unpin": "キャンセルピン留め",
     "settings": "設定",
     "sync": "同期",
-    "language": "言語"
+    "language": "言語",
+    "success": "成功",
+    "error": "失敗"
   },
   "settings": {
     "prompt": {
@@ -501,7 +503,9 @@
         "deleteLocalFile": "ローカルファイルを削除",
         "delete": "削除",
         "newFile": "新規ファイル",
-        "newFolder": "新規フォルダ"
+        "newFolder": "新規フォルダ",
+        "deleteSyncFileSuccess": "削除しました",
+        "deleteSyncFileError": "削除に失敗しました"
       },
       "error": {
         "fileExists": "ファイル名が既に存在します"

@@ -17,7 +17,9 @@
     "language": "Language",
     "confirm": "Confirm",
     "selectPrompt": "Select Prompt",
-    "prompt": "Prompt"
+    "prompt": "Prompt",
+    "success": "Success",
+    "error": "Failed"
   },
   "settings": {
     "about": {
@@ -513,7 +515,9 @@
         "deleteLocalFile": "Delete Local File",
         "delete": "Delete",
         "newFile": "New File",
-        "newFolder": "New Folder"
+        "newFolder": "New Folder",
+        "deleteSyncFileSuccess": "Delete Sync File Success",
+        "deleteSyncFileError": "Delete Sync File Error"
       },
       "error": {
         "fileExists": "File name already exists"

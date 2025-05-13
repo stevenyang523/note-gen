@@ -291,6 +291,8 @@ export async function deleteFile({ path, sha, repo }: { path: string, sha: strin
       description: (error as GiteeError).message,
       variant: 'destructive',
     })
+    // 返回 false 而不是 undefined，让调用者知道操作已完成
+    return false;
   }
 }
 
