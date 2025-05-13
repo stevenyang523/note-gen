@@ -14,6 +14,7 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import { Switch } from "@/components/ui/switch";
 import { checkSyncRepoState, getUserInfo } from "@/lib/gitee";
 import { toast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
 
 dayjs.extend(relativeTime)
 
@@ -23,7 +24,9 @@ export function GiteeSync() {
     giteeAccessToken, 
     setGiteeAccessToken, 
     giteeAutoSync, 
-    setGiteeAutoSync 
+    setGiteeAutoSync,
+    primaryBackupMethod,
+    setPrimaryBackupMethod 
   } = useSettingStore()
   
   const {
@@ -144,7 +147,21 @@ export function GiteeSync() {
           </SettingPanel>
         </>
       }
-
+      <SettingRow>
+        {primaryBackupMethod === 'gitee' ? (
+          <Button disabled variant="outline">
+            {t('settings.sync.isPrimaryBackup', { type: 'Gitee' })}
+          </Button>
+        ) : (
+          <Button 
+            variant="outline" 
+            onClick={() => setPrimaryBackupMethod('gitee')}
+            disabled={!giteeAccessToken || giteeSyncRepoState !== SyncStateEnum.success}
+          >
+            {t('settings.sync.setPrimaryBackup')}
+          </Button>
+        )}
+      </SettingRow>
     </>
   )
 }

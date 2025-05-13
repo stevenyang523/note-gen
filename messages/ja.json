@@ -58,7 +58,11 @@
       "jsdelivrSetting": "jsDelivr",
       "jsdelivrSettingDesc": "jsdelivrを利用して画像アクセスを高速化します。",
       "autoSync": "自動同期",
-      "giteeAutoSyncDesc": "有効にすると、入力停止から10秒後にエディタがGiteeに自動的に同期されます"
+      "giteeAutoSyncDesc": "有効にすると、入力停止から10秒後にエディタがGiteeに自動的に同期されます",
+      "backupMethod": "バックアップ方法",
+      "backupMethodDesc": "主要バックアップ方法として設定すると、文章作成中のすべての同期関連機能が現在のバックアップ方法を使用します（画像ホスティング機能を除く）",
+      "isPrimaryBackup": "現在の {type} 主要バックアップ方法",
+      "setPrimaryBackup": "主要バックアップ方法として設定"
     },
     "template": {
       "title": "整理テンプレート",

@@ -60,7 +60,11 @@
       "jsdelivrSetting": "jsDelivr",
       "jsdelivrSettingDesc": "Use jsdelivr to speed up image access.",
       "autoSync": "Auto Sync",
-      "giteeAutoSyncDesc": "When enabled, the editor will automatically sync to Gitee 10 seconds after input stops"
+      "giteeAutoSyncDesc": "When enabled, the editor will automatically sync to Gitee 10 seconds after input stops",
+      "backupMethod": "Backup Method",
+      "backupMethodDesc": "After setting as the primary backup method, all sync-related functions in writing will use the current backup method (except for image hosting)",
+      "isPrimaryBackup": "{type} is current primary backup",
+      "setPrimaryBackup": "Set as Primary Backup"
     },
     "template": {
       "title": "Template",

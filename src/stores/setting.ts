@@ -81,6 +81,10 @@ interface SettingState {
   giteeAutoSync: boolean
   setGiteeAutoSync: (giteeAutoSync: boolean) => Promise<void>
   
+  // 主要备份方式设置
+  primaryBackupMethod: 'github' | 'gitee'
+  setPrimaryBackupMethod: (method: 'github' | 'gitee') => Promise<void>
+  
   lastSettingPage: string
   setLastSettingPage: (page: string) => Promise<void>
 
@@ -237,6 +241,14 @@ const useSettingStore = create<SettingState>((set, get) => ({
     set({ giteeAutoSync })
     const store = await Store.load('store.json');
     await store.set('giteeAutoSync', giteeAutoSync)
+  },
+  
+  // 默认使用 GitHub 作为主要备份方式
+  primaryBackupMethod: 'github',
+  setPrimaryBackupMethod: async (method: 'github' | 'gitee') => {
+    set({ primaryBackupMethod: method })
+    const store = await Store.load('store.json');
+    await store.set('primaryBackupMethod', method)
   }
 }))
 

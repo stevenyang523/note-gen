@@ -12,12 +12,13 @@ import { OpenBroswer } from "@/components/open-broswer";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { Switch } from "@/components/ui/switch";
+import { Button } from "@/components/ui/button";
 
 dayjs.extend(relativeTime)
 
 export function GithubSync() {
   const t = useTranslations();
-  const { accessToken, setAccessToken, useImageRepo, setUseImageRepo, jsdelivr, setJsdelivr, autoSync, setAutoSync } = useSettingStore()
+  const { accessToken, setAccessToken, useImageRepo, setUseImageRepo, jsdelivr, setJsdelivr, autoSync, setAutoSync, primaryBackupMethod, setPrimaryBackupMethod } = useSettingStore()
   const {
     imageRepoState,
     setImageRepoState,
@@ -142,6 +143,21 @@ export function GithubSync() {
           </SettingPanel>
         </>
       }
+      <SettingRow className="mb-4">
+        {primaryBackupMethod === 'github' ? (
+          <Button disabled variant="outline">
+            {t('settings.sync.isPrimaryBackup', { type: 'Github' })}
+          </Button>
+        ) : (
+          <Button 
+            variant="outline" 
+            onClick={() => setPrimaryBackupMethod('github')}
+            disabled={!accessToken || syncRepoState !== SyncStateEnum.success}
+          >
+            {t('settings.sync.setPrimaryBackup')}
+          </Button>
+        )}
+      </SettingRow>
     </>
   )
 }
