@@ -115,13 +115,23 @@ export default function AppStatus() {
   // 检查 Gitee 仓库状态
   async function checkGiteeRepos() {
     try {
-      const { checkSyncRepoState } = await import('@/lib/gitee')
+      const { checkSyncRepoState, createSyncRepo } = await import('@/lib/gitee')
+      
+      // 检查同步仓库状态
       const syncRepo = await checkSyncRepoState('note-gen-sync')
       if (syncRepo) {
         setGiteeSyncRepoInfo(syncRepo)
         setGiteeSyncRepoState(SyncStateEnum.success)
       } else {
-        setGiteeSyncRepoState(SyncStateEnum.fail)
+        // 仓库不存在，尝试创建
+        setGiteeSyncRepoState(SyncStateEnum.creating)
+        const info = await createSyncRepo('note-gen-sync', true) // 默认创建私有仓库
+        if (info) {
+          setGiteeSyncRepoInfo(info)
+          setGiteeSyncRepoState(SyncStateEnum.success)
+        } else {
+          setGiteeSyncRepoState(SyncStateEnum.fail)
+        }
       }
     } catch (err) {
       console.error('Failed to check Gitee repos:', err)

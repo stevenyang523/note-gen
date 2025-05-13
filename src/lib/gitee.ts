@@ -107,7 +107,7 @@ export interface GiteeRepoInfo {
 }
 
 // 仓库名称类型
-export type RepoNames = 'note-image' | 'note-sync';
+export type RepoNames = 'note-image' | 'note-gen-sync';
 
 export interface GiteeFile {
   name: string;
@@ -157,8 +157,10 @@ export async function uploadFile(
     const headers = new Headers();
     headers.append('Content-Type', 'application/json');
     
+    // 根据是否有sha参数来决定是创建新文件（POST）还是更新文件（PUT）
+    // Gitee API 与 GitHub 不同，更新文件需要使用 PUT 请求
     const requestOptions = {
-      method: 'POST',
+      method: sha ? 'PUT' : 'POST', // 如果有sha说明是更新现有文件，使用PUT方法
       headers,
       body: JSON.stringify({
         access_token: accessToken,
@@ -172,7 +174,7 @@ export async function uploadFile(
     
     const url = `https://gitee.com/api/v5/repos/${giteeUsername}/${repo}/contents${_path}/${_filename}`;
     const response = await fetch(url, requestOptions);
-    
+
     if (response.status >= 200 && response.status < 300) {
       const data = await response.json();
       return { data } as GiteeResponse<any>;
@@ -444,7 +446,7 @@ export async function createSyncRepo(name: string, isPrivate?: boolean) {
         access_token: accessToken,
         name,
         private: isPrivate === undefined ? true : isPrivate,
-        auto_init: true,
+        auto_init: false,
         description: '由 Note Gen 自动创建'
       }),
       proxy
