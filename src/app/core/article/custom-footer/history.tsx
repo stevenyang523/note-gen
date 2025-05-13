@@ -23,7 +23,7 @@ dayjs.extend(relativeTime)
 
 export default function History({editor}: {editor?: Vditor}) {
   const [sheetOpen, setSheetOpen] = useState(false);
-  const { activeFilePath, setCurrentArticle, currentArticle } = useArticleStore()
+  const { activeFilePath, setCurrentArticle, currentArticle, loadFileTree } = useArticleStore()
   const { accessToken, giteeAccessToken, primaryBackupMethod } = useSettingStore()
   const [commits, setCommits] = useState<ResCommit[]>([])
   const [commitsLoading, setCommitsLoading] = useState(false)
@@ -97,13 +97,14 @@ export default function History({editor}: {editor?: Vditor}) {
   }, [activeFilePath])
 
   useEffect(() => {
-    emitter.on('sync-success', () => {
-      fetchCommits()
+    emitter.on('sync-success', async () => {
+      await loadFileTree()
+      await fetchCommits()
     })
     return () => {
       emitter.off('sync-success')
     }
-  }, [])
+  }, [activeFilePath])
 
   return (
     <Sheet open={sheetOpen} onOpenChange={onOpenChange}>

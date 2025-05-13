@@ -390,7 +390,6 @@ const useArticleStore = create<NoteState>((set, get) => ({
         set({ fileTreeLoading: false })
       }
     })
-    
   },
   // 加载文件夹内部的 Github/Gitee 仓库文件
   loadCollapsibleFiles: async (fullpath: string) => {

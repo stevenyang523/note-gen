@@ -98,7 +98,6 @@ export function FileItem({ item }: { item: DirTree }) {
       title: 'NoteGen',
       kind: 'warning',
     });
-    console.log(answer);
     if (answer) {
       try {
         // 获取当前主要备份方式

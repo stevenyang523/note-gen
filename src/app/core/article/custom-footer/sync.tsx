@@ -134,6 +134,9 @@ export default function Sync({editor}: {editor?: Vditor}) {
       if (uploadRes?.data?.commit?.message) {
         setSyncText(t('synced'));
         emitter.emit('sync-success');
+        setTimeout(() => {
+          setSyncText(t('sync'));
+        }, 3000);
       }
     } catch (error) {
       console.error('Sync error:', error);
