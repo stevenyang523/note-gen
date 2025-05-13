@@ -444,7 +444,11 @@
     "record": "记录",
     "write": "写作",
     "search": "搜索",
-    "gallery": "图床"
+    "gallery": "图床",
+    "login": "登录",
+    "loading": "加载中",
+    "view": "查看",
+    "logout": "登出"
   },
   "marks": {
     "types": {

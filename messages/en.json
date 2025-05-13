@@ -456,7 +456,11 @@
     "record": "Record",
     "write": "Write",
     "search": "Search",
-    "gallery": "Gallery"
+    "gallery": "Gallery",
+    "login": "Login",
+    "loading": "Loading",
+    "view": "View",
+    "logout": "Logout"
   },
   "marks": {
     "types": {
