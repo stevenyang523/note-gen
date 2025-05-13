@@ -337,7 +337,7 @@ const useArticleStore = create<NoteState>((set, get) => ({
       if (primaryBackupMethod === 'github') {
         files = await getGithubFiles({ path, repo: RepoNames.sync });
       } else {
-        files = await getGiteeFiles({ path, repo: 'note-gen-sync' });
+        files = await getGiteeFiles({ path, repo: RepoNames.sync });
       }
       
       if (files) {
@@ -404,7 +404,7 @@ const useArticleStore = create<NoteState>((set, get) => ({
     if (primaryBackupMethod === 'github') {
       files = await getGithubFiles({ path: fullpath, repo: RepoNames.sync });
     } else {
-      files = await getGiteeFiles({ path: fullpath, repo: 'note-gen-sync' });
+      files = await getGiteeFiles({ path: fullpath, repo: RepoNames.sync });
     }
     
     if (files && currentFolder) {
@@ -684,7 +684,7 @@ const useArticleStore = create<NoteState>((set, get) => ({
           if (primaryBackupMethod === 'github') {
             content = decodeBase64ToString(await getGithubFiles({ path, repo: RepoNames.sync }))
           } else {
-            content = giteeDecodeBase64ToString(await getGiteeFiles({ path, repo: 'note-gen-sync' }))
+            content = giteeDecodeBase64ToString(await getGiteeFiles({ path, repo: RepoNames.sync }))
           }
           set({ currentArticle: content })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -701,7 +701,7 @@ const useArticleStore = create<NoteState>((set, get) => ({
         res = await getGithubFiles({ path, repo: RepoNames.sync })
         set({ currentArticle: decodeBase64ToString(res.content) })
       } else {
-        res = await getGiteeFiles({ path, repo: 'note-gen-sync' })
+        res = await getGiteeFiles({ path, repo: RepoNames.sync })
         set({ currentArticle: giteeDecodeBase64ToString(res.content) })
       }
     }

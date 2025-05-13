@@ -47,13 +47,13 @@ export default function History({editor}: {editor?: Vditor}) {
     if (backupMethod === 'github') {
       res = await getGithubFileCommits({ path: activeFilePath, repo: RepoNames.sync });
     } else {
-      res = await getGiteeFileCommits({ path: activeFilePath, repo: 'note-gen-sync' });
+      res = (await getGiteeFileCommits({ path: activeFilePath, repo: RepoNames.sync }))?.data;
       // 确保返回结果是数组
       if (res && !Array.isArray(res)) {
         res = [];
       }
     }
-    
+
     setCommits(res || [])
     setCommitsLoading(false)
   }
@@ -77,7 +77,7 @@ export default function History({editor}: {editor?: Vditor}) {
         setCurrentArticle(cacheArticle);
       }
     } else {
-      res = await getGiteeFiles({path: `${activeFilePath}?ref=${sha}`, repo: 'note-gen-sync'});
+      res = await getGiteeFiles({path: `${activeFilePath}?ref=${sha}`, repo: RepoNames.sync});
       if (res && res.content) {
         setCurrentArticle(giteeDecodeBase64ToString(res.content));
       } else {

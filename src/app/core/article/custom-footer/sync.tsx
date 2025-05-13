@@ -60,10 +60,10 @@ export default function Sync({editor}: {editor?: Vditor}) {
           }
         } else {
           // 获取Gitee提交历史
-          const giteeCommits = await getGiteeFileCommits({ path: activeFilePath, repo: 'note-gen-sync' });
+          const giteeCommits = await getGiteeFileCommits({ path: activeFilePath, repo: RepoNames.sync });
           if (Array.isArray(giteeCommits) && giteeCommits.length > 0) {
             const lastCommit = giteeCommits[0];
-            const giteeContent = await getGiteeFiles({path: `${activeFilePath}?ref=${lastCommit.sha}`, repo: 'note-gen-sync'});
+            const giteeContent = await getGiteeFiles({path: `${activeFilePath}?ref=${lastCommit.sha}`, repo: RepoNames.sync});
             if (giteeContent?.content) {
               contentText = giteeDecodeBase64ToString(giteeContent.content);
             }
@@ -95,7 +95,7 @@ export default function Sync({editor}: {editor?: Vditor}) {
       if (backupMethod === 'github') {
         res = await getGithubFiles({path: activeFilePath, repo: RepoNames.sync});
       } else {
-        res = await getGiteeFiles({path: activeFilePath, repo: 'note-gen-sync'});
+        res = await getGiteeFiles({path: activeFilePath, repo: RepoNames.sync});
       }
       
       if (res) {
@@ -126,7 +126,7 @@ export default function Sync({editor}: {editor?: Vditor}) {
           filename: `${_path && _path + '/'}${filename}`,
           sha,
           message,
-          repo: 'note-gen-sync'
+          repo: RepoNames.sync
         });
       }
       
@@ -174,7 +174,7 @@ export default function Sync({editor}: {editor?: Vditor}) {
       if (backupMethod === 'github') {
         res = await getGithubFiles({path: activeFilePath, repo: RepoNames.sync});
       } else {
-        res = await getGiteeFiles({path: activeFilePath, repo: 'note-gen-sync'});
+        res = await getGiteeFiles({path: activeFilePath, repo: RepoNames.sync});
       }
       
       if (res) {
@@ -205,7 +205,7 @@ export default function Sync({editor}: {editor?: Vditor}) {
           filename: `${_path && _path + '/'}${filename}`,
           sha,
           message,
-          repo: 'note-gen-sync'
+          repo: RepoNames.sync
         });
       }
       

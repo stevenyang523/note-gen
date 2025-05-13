@@ -118,14 +118,14 @@ export default function AppStatus() {
       const { checkSyncRepoState, createSyncRepo } = await import('@/lib/gitee')
       
       // 检查同步仓库状态
-      const syncRepo = await checkSyncRepoState('note-gen-sync')
+      const syncRepo = await checkSyncRepoState(RepoNames.sync)
       if (syncRepo) {
         setGiteeSyncRepoInfo(syncRepo)
         setGiteeSyncRepoState(SyncStateEnum.success)
       } else {
         // 仓库不存在，尝试创建
         setGiteeSyncRepoState(SyncStateEnum.creating)
-        const info = await createSyncRepo('note-gen-sync', true) // 默认创建私有仓库
+        const info = await createSyncRepo(RepoNames.sync, true) // 默认创建私有仓库
         if (info) {
           setGiteeSyncRepoInfo(info)
           setGiteeSyncRepoState(SyncStateEnum.success)

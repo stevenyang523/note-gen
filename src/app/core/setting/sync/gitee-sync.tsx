@@ -15,6 +15,7 @@ import { Switch } from "@/components/ui/switch";
 import { checkSyncRepoState, getUserInfo } from "@/lib/gitee";
 import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
+import { RepoNames } from "@/lib/github.types";
 
 dayjs.extend(relativeTime)
 
@@ -45,7 +46,7 @@ export function GiteeSync() {
       await getUserInfo();
       
       // 检查同步仓库
-      const syncRepo = await checkSyncRepoState('note-gen-sync');
+      const syncRepo = await checkSyncRepoState(RepoNames.sync);
       if (syncRepo) {
         setGiteeSyncRepoInfo(syncRepo);
         setGiteeSyncRepoState(SyncStateEnum.success);

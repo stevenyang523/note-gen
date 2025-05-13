@@ -2,6 +2,7 @@ import { toast } from '@/hooks/use-toast';
 import { Store } from '@tauri-apps/plugin-store';
 import { v4 as uuid } from 'uuid';
 import { fetch, Proxy } from '@tauri-apps/plugin-http'
+import { RepoNames } from './github.types'
 
 // 自定义类型，类似于 GitHub 的响应
 type GiteeResponse<T> = {
@@ -106,9 +107,6 @@ export interface GiteeRepoInfo {
   };
 }
 
-// 仓库名称类型
-export type RepoNames = 'note-image' | 'note-gen-sync';
-
 export interface GiteeFile {
   name: string;
   path: string;
@@ -129,7 +127,7 @@ interface Links {
 
 export async function uploadFile(
   { ext, file, filename, sha, message, repo, path }:
-  { ext: string, file: string, filename?: string, sha?: string, message?: string, repo: RepoNames, path?: string }) 
+  { ext: string, file: string, filename?: string, sha?: string, message?: string, repo: RepoNames.sync, path?: string }) 
 {
   const store = await Store.load('store.json');
   const accessToken = await store.get('giteeAccessToken')
@@ -194,7 +192,7 @@ export async function uploadFile(
   }
 }
 
-export async function getFiles({ path, repo }: { path: string, repo: RepoNames }) {
+export async function getFiles({ path, repo }: { path: string, repo: RepoNames.sync }) {
   const store = await Store.load('store.json');
   const accessToken = await store.get<string>('giteeAccessToken')
   if (!accessToken) return;
@@ -209,16 +207,20 @@ export async function getFiles({ path, repo }: { path: string, repo: RepoNames }
   } : undefined
   
   try {
-    // 设置请求参数
-    const params = new URLSearchParams();
-    params.append('access_token', accessToken);
+    let access_token_param = ``
+
+    if (path.includes('?ref=')) {
+      access_token_param = `&access_token=${accessToken}`
+    } else {
+      access_token_param = `?access_token=${accessToken}`
+    }
+    
+    const url = `https://gitee.com/api/v5/repos/${giteeUsername}/${repo}/contents/${path}${access_token_param}`;
     
     const requestOptions = {
       method: 'GET',
       proxy
     };
-    
-    const url = `https://gitee.com/api/v5/repos/${giteeUsername}/${repo}/contents/${path}?${params.toString()}`;
     
     try {
       const response = await fetch(url, requestOptions);
@@ -241,7 +243,7 @@ export async function getFiles({ path, repo }: { path: string, repo: RepoNames }
   }
 }
 
-export async function deleteFile({ path, sha, repo }: { path: string, sha: string, repo: RepoNames }) {
+export async function deleteFile({ path, sha, repo }: { path: string, sha: string, repo: RepoNames.sync }) {
   const store = await Store.load('store.json');
   const accessToken = await store.get('giteeAccessToken')
   if (!accessToken) return;
@@ -292,7 +294,7 @@ export async function deleteFile({ path, sha, repo }: { path: string, sha: strin
   }
 }
 
-export async function getFileCommits({ path, repo }: { path: string, repo: RepoNames }) {
+export async function getFileCommits({ path, repo }: { path: string, repo: RepoNames.sync }) {
   const store = await Store.load('store.json');
   const accessToken = await store.get<string>('giteeAccessToken')
   if (!accessToken) return;
