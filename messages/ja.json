@@ -52,10 +52,13 @@
       "updatedAt": "最終更新: {time}",
       "newToken": "作成 access token",
       "newTokenDesc": "新しいトークンを作成する際は必ずrepo権限を選択してください。設定後、自動的にプライベートリポジトリと画像ホスティングリポジトリが作成されます。",
+      "giteeTokenDesc": "Giteeの個人アクセストークンはデータ同期に使用されます。リポジトリの読み書き権限が必要です。設定後、自動的にファイルリポジトリ（プライベート）と画像リポジトリが作成されます。",
       "imageRepoSetting": "本地/图床",
       "imageRepoSettingDesc": "画像ホスティングリポジトリが設定されています。有効にすると画像はそちらに保存され、無効の場合はローカル保存となります。",
       "jsdelivrSetting": "jsDelivr",
-      "jsdelivrSettingDesc": "jsdelivrを利用して画像アクセスを高速化します。"
+      "jsdelivrSettingDesc": "jsdelivrを利用して画像アクセスを高速化します。",
+      "autoSync": "自動同期",
+      "giteeAutoSyncDesc": "有効にすると、入力停止から10秒後にエディタがGiteeに自動的に同期されます"
     },
     "template": {
       "title": "整理テンプレート",
