@@ -376,7 +376,20 @@
           "noApiKey": "无 API KEY 配置，无法使用 AI 聊天..."
         },
         "send": "发送",
-        "terminate": "终止"
+        "terminate": "终止",
+        "tagLink": {
+          "on": "已关联标签",
+          "off": "未关联标签"
+        },
+        "modelSelect": {
+          "tooltip": "选择 AI 模型",
+          "placeholder": "搜索 AI 模型"
+        },
+        "promptSelect": {
+          "tooltip": "选择面具",
+          "placeholder": "搜索面具"
+        },
+        "clearChat": "清空对话"
       },
       "header": {
         "configApiKey": "配置 API KEY",

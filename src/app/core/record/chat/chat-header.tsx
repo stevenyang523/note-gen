@@ -1,39 +1,27 @@
 "use client"
-import { TooltipProvider } from "@/components/ui/tooltip"
-import * as React from "react"
-import dayjs from "dayjs"
-import relativeTime from 'dayjs/plugin/relativeTime'
-import { Eraser } from "lucide-react"
-import { TooltipButton } from "@/components/tooltip-button"
-import useChatStore from "@/stores/chat"
-import useTagStore from "@/stores/tag"
-import { useTranslations } from 'next-intl'
-import { ModelSelect } from "./model-select"
-import { PromptSelect } from "./prompt-select"
 
-dayjs.extend(relativeTime)
+import { BotMessageSquare, Drama, LayoutGrid } from "lucide-react"
+import usePromptStore from "@/stores/prompt"
+import useSettingStore from "@/stores/setting"
+import { TooltipButton } from "@/components/tooltip-button"
 
 export function ChatHeader() {
-  const { clearChats } = useChatStore()
-  const { currentTagId } = useTagStore()
-  const t = useTranslations()
-
-  function clearHandler() {
-    clearChats(currentTagId)
-  }
-
+  const { currentPrompt } = usePromptStore()
+  const { aiType, model } = useSettingStore()
   return (
-    <header className="h-12 w-full grid grid-cols-3 items-center border-b gap-2 px-4">
+    <header className="h-12 w-full flex justify-between items-center border-b gap-2 px-4 text-sm">
+      <div className="flex items-center gap-4 text-muted-foreground">
+        <div className="flex items-center gap-1">
+          <BotMessageSquare className="size-4" />
+          {`${model}(${aiType})`}
+        </div>
+        <div className="flex items-center gap-1">
+          <Drama className="size-4" />
+          {currentPrompt?.title}
+        </div>
+      </div>
       <div className="flex items-center h-6 gap-1">
-        <PromptSelect />
-      </div>
-      <div className="flex items-center justify-center gap-2">
-        <ModelSelect />
-      </div>
-      <div className="flex justify-end items-center h-6 gap-1">
-        <TooltipProvider>
-          <TooltipButton icon={<Eraser />} tooltipText={t('record.chat.header.clearChat')} onClick={clearHandler}/>
-        </TooltipProvider>
+        <TooltipButton icon={<LayoutGrid />} tooltipText="Apps" />
       </div>
     </header>
   )

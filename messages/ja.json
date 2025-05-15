@@ -376,7 +376,20 @@
           "noApiKey": "無 API KEY 設定、AI 話題できません..."
         },
         "send": "送信",
-        "terminate": "終了"
+        "terminate": "終了",
+        "tagLink": {
+          "on": "タグとリンク済み",
+          "off": "タグとリンクなし"
+        },
+        "modelSelect": {
+          "tooltip": "AIモデルを選択",
+          "placeholder": "AIモデルを検索"
+        },
+        "promptSelect": {
+          "tooltip": "プロンプトを選択",
+          "placeholder": "プロンプトを検索"
+        },
+        "clearChat": "会話をクリア"
       },
       "header": {
         "configApiKey": "API KEY の設定",

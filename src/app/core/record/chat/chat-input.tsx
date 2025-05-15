@@ -3,7 +3,7 @@ import * as React from "react"
 import { useEffect, useRef, useState } from "react"
 import { Send, Square } from "lucide-react"
 import useSettingStore from "@/stores/setting"
-import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import {
   Tabs,
   TabsList,
@@ -19,6 +19,9 @@ import { useI18n } from "@/hooks/useI18n"
 import { ChatLink } from "./chat-link"
 import { TooltipButton } from "@/components/tooltip-button"
 import { useLocalStorage } from 'react-use';
+import { ModelSelect } from "./model-select"
+import { PromptSelect } from "./prompt-select"
+import { ClearChat } from "./clear-chat"
 
 export function ChatInput() {
   const [text, setText] = useState("")
@@ -189,55 +192,77 @@ export function ChatInput() {
   }, [apiKey, marks, isLinkMark, t])
 
   return (
-    <footer className="relative flex items-center border rounded-lg p-2 gap-1 my-4 w-3/4 max-w-[860px]">
-      <ChatLink inputType={inputType} />
-      <Input
-        className="flex-1 relative border-none focus-visible:ring-0 shadow-none"
-        disabled={!apiKey || loading}
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        placeholder={placeholder}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" && !isComposing && e.keyCode === 13) {
-            e.preventDefault()
-            if (inputType === "gen") {
-              markGenRef.current?.openGen()
-            } else if (inputType === "chat") {
-              handleSubmit()
+    <footer className="relative flex flex-col border rounded-xl p-2 gap-2 mb-2 w-[calc(100%-1rem)]">
+      <div className="relative w-full flex items-start">
+        <Textarea
+          className="flex-1 p-2 relative border-none focus-visible:ring-0 shadow-none min-h-[36px] max-h-[240px] resize-none overflow-y-auto"
+          rows={1}
+          disabled={!apiKey || loading}
+          value={text}
+          onChange={(e) => {
+            setText(e.target.value)
+            const textarea = e.target
+            textarea.style.height = 'auto'
+            const newHeight = Math.min(textarea.scrollHeight, 240)
+            textarea.style.height = `${newHeight}px`
+          }}
+          placeholder={placeholder}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !isComposing && !e.shiftKey && e.keyCode === 13) {
+              e.preventDefault()
+              if (inputType === "gen") {
+                markGenRef.current?.openGen()
+              } else if (inputType === "chat") {
+                handleSubmit()
+              }
             }
+            if (e.key === "Tab") {
+              e.preventDefault()
+              setText(placeholder.replace('[Tab]', ''))
+            }
+          }}
+          onCompositionStart={() => setIsComposing(true)}
+          onCompositionEnd={() => setTimeout(() => {
+            setIsComposing(false)
+          }, 0)}
+        />
+      </div>
+      <div className="flex justify-between items-center w-full">
+        <div className="flex">
+          <ChatLink inputType={inputType} />
+          <ModelSelect />
+          <PromptSelect />
+          <ClearChat />
+        </div>
+        <div className="flex items-center justify-end gap-2 pr-1">
+          <Tabs value={inputType} onValueChange={inputTypeChangeHandler}>
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="gen">{t('record.chat.input.organize')}</TabsTrigger>
+              <TabsTrigger value="chat">{t('record.chat.input.chat')}</TabsTrigger>
+            </TabsList>
+          </Tabs>
+          {
+            inputType === 'gen' ?
+              <MarkGen inputValue={text} ref={markGenRef} /> :
+              loading ? 
+                <TooltipButton 
+                  variant={"ghost"}
+                  size="sm"
+                  icon={<Square className="text-destructive" />} 
+                  tooltipText={t('record.chat.input.terminate')} 
+                  onClick={terminateChat} 
+                /> :
+                <TooltipButton 
+                  variant={"default"}
+                  size="sm"
+                  icon={<Send className="size-4" />} 
+                  disabled={!apiKey} 
+                  tooltipText={t('record.chat.input.send')} 
+                  onClick={handleSubmit} 
+                />
           }
-          if (e.key === "Tab") {
-            e.preventDefault()
-            setText(placeholder.replace('[Tab]', ''))
-          }
-        }}
-        onCompositionStart={() => setIsComposing(true)}
-        onCompositionEnd={() => setTimeout(() => {
-          setIsComposing(false)
-        }, 0)}
-      />
-      <Tabs value={inputType} onValueChange={inputTypeChangeHandler}>
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="gen">{t('record.chat.input.organize')}</TabsTrigger>
-          <TabsTrigger value="chat">{t('record.chat.input.chat')}</TabsTrigger>
-        </TabsList>
-      </Tabs>
-      {
-        inputType === 'gen' ?
-          <MarkGen inputValue={text} ref={markGenRef} /> :
-          loading ? 
-            <TooltipButton 
-              icon={<Square className="text-destructive" />} 
-              tooltipText={t('record.chat.input.terminate')} 
-              onClick={terminateChat} 
-            /> :
-            <TooltipButton 
-              icon={<Send className="size-4" />} 
-              disabled={!apiKey} 
-              tooltipText={t('record.chat.input.send')} 
-              onClick={handleSubmit} 
-            />
-      }
+        </div>
+      </div>
     </footer>
   )
 }

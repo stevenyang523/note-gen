@@ -407,7 +407,20 @@
           "noApiKey": "No API Key configured, can't use AI chat..."
         },
         "send": "Send",
-        "terminate": "Terminate"
+        "terminate": "Terminate",
+        "tagLink": {
+          "on": "Linked to tag",
+          "off": "Not linked to tag"
+        },
+        "modelSelect": {
+          "tooltip": "Select AI model",
+          "placeholder": "Search AI models"
+        },
+        "promptSelect": {
+          "tooltip": "Select prompt",
+          "placeholder": "Search prompts"
+        },
+        "clearChat": "Clear conversation"
       },
       "header": {
         "configApiKey": "Configure API KEY",
