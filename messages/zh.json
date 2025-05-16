@@ -368,6 +368,12 @@
           }
         ]
       },
+      "newChat": "使用新标签开始对话",
+      "removeChat": "删除当前标签对话",
+      "confirmNew": "创建新标签",
+      "confirmNewDescription": "请确认要创建一个新的标签开始对话吗？",
+      "confirmRemove": "删除标签",
+      "confirmRemoveDescription": "请注意，删除此标签会连带删除内部的记录，请再次确认。",
       "input": {
         "organize": "整理",
         "chat": "聊天",

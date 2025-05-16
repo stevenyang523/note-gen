@@ -381,6 +381,12 @@
           }
         ]
       },
+      "newChat": "New Chat with New Tag",
+      "removeChat": "Remove Chat with Current Tag",
+      "confirmNew": "Create New Tag",
+      "confirmNewDescription": "Are you sure you want to create a new tag to start a conversation?",
+      "confirmRemove": "Delete Tag",
+      "confirmRemoveDescription": "Please note that deleting this tag will also delete all records within it. Please confirm again.",
       "content": {
         "organize": "Organize your records into an article:"
       },
