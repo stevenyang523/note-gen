@@ -4,7 +4,7 @@ import OpenAI from 'openai';
 import { GoogleGenAI } from "@google/genai";
 
 /**
- * 获取当前的面具内容
+ * 获取当前的prompt内容
  */
 async function getPromptContent(): Promise<string> {
   const store = await Store.load('store.json')
@@ -72,7 +72,7 @@ export async function fetchAi(text: string): Promise<string> {
       return ''
     }
     
-    // 获取面具内容
+    // 获取prompt内容
     const promptContent = await getPromptContent()
     
     // 创建 OpenAI 客户端
@@ -179,7 +179,7 @@ export async function fetchAiStream(text: string, onUpdate: (content: string) =>
       return ''
     }
     
-    // 获取面具内容
+    // 获取prompt内容
     const promptContent = await getPromptContent()
     
     // 创建 OpenAI 客户端
@@ -323,7 +323,7 @@ export async function fetchAiStreamToken(text: string, onUpdate: (content: strin
       return ''
     }
     
-    // 获取面具内容
+    // 获取prompt内容
     const promptContent = await getPromptContent()
     
     // 创建 OpenAI 客户端

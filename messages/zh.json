@@ -21,17 +21,17 @@
   },
   "settings": {
     "prompt": {
-      "title": "面具",
-      "promptTitle": "面具名称",
-      "desc": "在这里，你可以添加和管理面具，帮助 AI 更好地理解你的需求。",
-      "addPrompt": "新增面具",
-      "selectPrompt": "选择面具",
-      "configPrompt": "配置面具",
+      "title": "Prompt",
+      "promptTitle": "Prompt 名称",
+      "desc": "在这里，你可以添加和管理 Prompt，帮助 AI 更好地理解你的需求。",
+      "addPrompt": "新增 Prompt",
+      "selectPrompt": "选择 Prompt",
+      "configPrompt": "配置 Prompt",
       "noContent": "暂无内容",
-      "addPromptDesc": "请输入面具名称和内容，帮助AI更好地理解你的需求。",
-      "promptTitlePlaceholder": "请输入面具名称",
-      "promptContentPlaceholder": "请输入面具内容",
-      "promptContent": "面具内容"
+      "addPromptDesc": "请输入 Prompt 名称和内容，帮助AI更好地理解你的需求。",
+      "promptTitlePlaceholder": "请输入 Prompt 名称",
+      "promptContentPlaceholder": "请输入 Prompt 内容",
+      "promptContent": "Prompt 内容"
     },
     "about": {
       "title": "关于",
@@ -246,8 +246,8 @@
           "header": {
             "configApiKey": "配置 API KEY",
             "clearChat": "清空对话",
-            "configPrompt": "配置面具",
-            "selectPrompt": "选择面具"
+            "configPrompt": "配置 Prompt",
+            "selectPrompt": "选择 Prompt"
           },
           "clipboard": {
             "image": {
@@ -386,8 +386,8 @@
           "placeholder": "搜索 AI 模型"
         },
         "promptSelect": {
-          "tooltip": "选择面具",
-          "placeholder": "搜索面具"
+          "tooltip": "选择 Prompt",
+          "placeholder": "搜索 Prompt"
         },
         "clearChat": "清空对话",
         "clearContext": {
@@ -397,8 +397,8 @@
       "header": {
         "configApiKey": "配置 API KEY",
         "clearChat": "清空聊天",
-        "configPrompt": "配置面具",
-        "selectPrompt": "选择面具"
+        "configPrompt": "配置 Prompt",
+        "selectPrompt": "选择 Prompt"
       },
       "clipboard": {
         "image": {

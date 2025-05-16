@@ -14,12 +14,12 @@ export function PromptSelect() {
   const [open, setOpen] = React.useState(false)
   const t = useTranslations('record.chat.input.promptSelect')
 
-  // 初始化面具列表
+  // 初始化prompt列表
   useEffect(() => {
     initPromptData()
   }, [])
 
-  // 选择面具
+  // 选择 Prompt
   async function promptSelectChangeHandler(id: string) {
     const selectedPrompt = promptList.find(item => item.id === id)
     if (!selectedPrompt) return
