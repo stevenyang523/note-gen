@@ -389,7 +389,10 @@
           "tooltip": "プロンプトを選択",
           "placeholder": "プロンプトを検索"
         },
-        "clearChat": "会話をクリア"
+        "clearChat": "会話をクリア",
+        "clearContext": {
+          "tooltip": "コンテキストをクリア"
+        }
       },
       "header": {
         "configApiKey": "API KEY の設定",

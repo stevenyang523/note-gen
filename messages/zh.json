@@ -389,7 +389,10 @@
           "tooltip": "选择面具",
           "placeholder": "搜索面具"
         },
-        "clearChat": "清空对话"
+        "clearChat": "清空对话",
+        "clearContext": {
+          "tooltip": "清除上下文"
+        }
       },
       "header": {
         "configApiKey": "配置 API KEY",

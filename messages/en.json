@@ -420,7 +420,10 @@
           "tooltip": "Select prompt",
           "placeholder": "Search prompts"
         },
-        "clearChat": "Clear conversation"
+        "clearChat": "Clear conversation",
+        "clearContext": {
+          "tooltip": "Clear context"
+        }
       },
       "header": {
         "configApiKey": "Configure API KEY",
