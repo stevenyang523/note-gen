@@ -169,6 +169,7 @@ export async function fetchAiStream(text: string, onUpdate: (content: string) =>
     const aiType = await store.get<string>('aiType') || 'openai'
     const temperature = await store.get<number>('temperature') || 0.7
     const topP = await store.get<number>('topP') || 1
+    const chatLanguage = await store.get<string>('chatLanguage') || 'en'
     
     if (!baseURL) {
       toast({
@@ -180,8 +181,7 @@ export async function fetchAiStream(text: string, onUpdate: (content: string) =>
     }
     
     // 获取prompt内容
-    const promptContent = await getPromptContent()
-    
+    const promptContent = await getPromptContent() + '\n\n' + `Use **${chatLanguage}** to answer.`
     // 创建 OpenAI 客户端
     const openai = await createOpenAIClient()
     
@@ -313,6 +313,7 @@ export async function fetchAiStreamToken(text: string, onUpdate: (content: strin
     const aiType = await store.get<string>('aiType') || 'openai'
     const temperature = await store.get<number>('temperature') || 0.7
     const topP = await store.get<number>('topP') || 1
+    const chatLanguage = await store.get<string>('chatLanguage') || 'en'
     
     if (!baseURL) {
       toast({
@@ -324,7 +325,7 @@ export async function fetchAiStreamToken(text: string, onUpdate: (content: strin
     }
     
     // 获取prompt内容
-    const promptContent = await getPromptContent()
+    const promptContent = await getPromptContent() + '\n\n' + `Use **${chatLanguage}** to answer.`
     
     // 创建 OpenAI 客户端
     const openai = await createOpenAIClient()

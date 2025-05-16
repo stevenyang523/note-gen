@@ -15,7 +15,6 @@ import useMarkStore from "@/stores/mark"
 import { fetchAi, fetchAiStream } from "@/lib/ai"
 import { MarkGen } from "./mark-gen"
 import { useTranslations } from 'next-intl'
-import { useI18n } from "@/hooks/useI18n"
 import { ChatLink } from "./chat-link"
 import { TooltipButton } from "@/components/tooltip-button"
 import { useLocalStorage } from 'react-use';
@@ -23,6 +22,7 @@ import { ModelSelect } from "./model-select"
 import { PromptSelect } from "./prompt-select"
 import { ClearChat } from "./clear-chat"
 import { ClearContext } from "./clear-context"
+import { ChatLanguage } from "./chat-language"
 
 export function ChatInput() {
   const [text, setText] = useState("")
@@ -33,9 +33,8 @@ export function ChatInput() {
   const [isComposing, setIsComposing] = useState(false)
   const [placeholder, setPlaceholder] = useState('')
   const t = useTranslations()
-  const { currentLocale } = useI18n()
   const [inputType, setInputType] = useLocalStorage('chat-input-type', 'chat')
-  const markGenRef = useRef<{ openGen: () => void }>(null)
+  const markGenRef = useRef<any>(null) // Fix markGenRef type
   const { isLinkMark } = useChatStore()
   const abortControllerRef = useRef<AbortController | null>(null)
 
@@ -73,7 +72,6 @@ export function ChatInput() {
     if (!message) return
 
     await fetchMarks()
-    
     const scanMarks = isLinkMark ? marks.filter(item => item.type === 'scan') : []
     const textMarks = isLinkMark ? marks.filter(item => item.type === 'text') : []
     const imageMarks = isLinkMark ? marks.filter(item => item.type === 'image') : []
@@ -100,7 +98,6 @@ export function ChatInput() {
           .map((item, index) => `${index + 1}. ${item.content}`)
           .join(';\n\n')
       }。
-      使用 ${currentLocale} 语言
       ${text}
     `
     
@@ -175,7 +172,7 @@ export function ChatInput() {
         .filter((item) => item.tagId === currentTagId && item.type === "chat" && item.role === 'user')
         .map((item, index) => `${index + 1}. ${item.content}`)
         .join(';\n\n')}。
-      使用 ${currentLocale} 语言，分析这些记录的内容，编写一个可能会向你提问的问题，用于辅助用户向你提问，不要返回用户已经提过的类似问题，不许超过 20 个字。
+      分析这些记录的内容，编写一个可能会向你提问的问题，用于辅助用户向你提问，不要返回用户已经提过的类似问题，不许超过 20 个字。
     `
     // 使用非流式请求获取placeholder内容
     const content = await fetchAi(request_content)
@@ -242,6 +239,7 @@ export function ChatInput() {
           <ChatLink inputType={inputType} />
           <ModelSelect />
           <PromptSelect />
+          <ChatLanguage />
           <ClearContext />
           <ClearChat />
         </div>

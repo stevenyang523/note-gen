@@ -398,6 +398,10 @@
         "clearChat": "清空对话",
         "clearContext": {
           "tooltip": "清除上下文"
+        },
+        "chatLanguage": {
+          "tooltip": "选择对话语言",
+          "placeholder": "搜索语言"
         }
       },
       "header": {
