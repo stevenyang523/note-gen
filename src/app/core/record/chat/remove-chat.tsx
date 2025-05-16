@@ -16,7 +16,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 export function RemoveChat() {
   const t = useTranslations('record.chat')
@@ -31,6 +31,15 @@ export function RemoveChat() {
 
   const { fetchMarks } = useMarkStore()
   const [open, setOpen] = useState(false)
+  const [isFirstTag, setIsFirstTag] = useState(false)
+
+  useEffect(() => {
+    if (tags?.length === 0) {
+      setIsFirstTag(true)
+    } else {
+      setIsFirstTag(currentTag?.id === tags?.[0].id)
+    }
+  }, [currentTag, tags])
 
   async function confirmRemoveChat() {
     await delTag(currentTag?.id as number)
@@ -43,7 +52,7 @@ export function RemoveChat() {
 
   return (
     <>
-      <TooltipButton icon={<Trash2 />} tooltipText={t('removeChat')} onClick={() => setOpen(true)} />
+      <TooltipButton disabled={isFirstTag} icon={<Trash2 />} tooltipText={t('removeChat')} onClick={() => setOpen(true)} />
       <AlertDialog open={open} onOpenChange={setOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>

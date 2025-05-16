@@ -1,7 +1,7 @@
 import * as React from "react"
 import { useEffect, useState } from "react"
 import { Store } from "@tauri-apps/plugin-store"
-import { Languages } from "lucide-react"
+import { Globe } from "lucide-react"
 import {
   Popover,
   PopoverContent,
@@ -82,7 +82,7 @@ export function ChatLanguage() {
       <PopoverTrigger asChild>
         <div>
           <TooltipButton
-            icon={<Languages className={`size-4 ${chatLanguage ? "text-primary" : ""}`} />}
+            icon={<Globe className={`size-4 ${chatLanguage ? "text-primary" : ""}`} />}
             tooltipText={`${t('chatLanguage.tooltip') || "Select chat language"} (${getCurrentLanguageName()})`}
             size="icon"
             variant="ghost"
