@@ -13,7 +13,7 @@ NoteGen is a cross-platform `Markdown` note-taking application dedicated to usin
 
 Recording:
 
-![record](https://s2.loli.net/2025/04/14/NxhiWjMZT7RtusS.png)
+![record](https://github.com/user-attachments/assets/34f7fdc7-ebab-473f-ad8b-e2e93ed0f9e3)
 
 Writing:
 

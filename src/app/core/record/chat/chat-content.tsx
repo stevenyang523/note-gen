@@ -15,23 +15,31 @@ import useSyncStore from '@/stores/sync'
 import { Avatar, AvatarImage } from '@/components/ui/avatar'
 import ChatThinking from './chat-thinking'
 import { Separator } from '@/components/ui/separator'
+import { debounce } from 'lodash-es'
 
 export default function ChatContent() {
   const { chats, init } = useChatStore()
   const { currentTagId } = useTagStore()
+
+  function scrollToBottom() {
+    const md = document.querySelector('#chats-wrapper')
+    if (md) {
+      md.scroll(0, md.scrollHeight)
+      setTimeout(() => {
+        md.scroll(0, md.scrollHeight)
+      }, 1000)
+    }
+  }
+
+  // debounce
+  const scrollToBottomDebounce = debounce(scrollToBottom, 500)
 
   useEffect(() => {
     init(currentTagId)
   }, [currentTagId])
 
   useEffect(() => {
-    const md = document.querySelector('#chats-wrapper')
-    if (md) {
-      md.scroll(0, md.scrollHeight)
-      setTimeout(() => {
-        md.scroll(0, md.scrollHeight)
-      }, 500)
-    }
+    scrollToBottomDebounce()
   }, [chats])
 
   return <div id="chats-wrapper" className="flex-1 overflow-y-auto overflow-x-hidden w-full flex flex-col items-end p-4 gap-6">

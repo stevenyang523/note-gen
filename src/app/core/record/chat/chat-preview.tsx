@@ -3,6 +3,7 @@ import useSettingStore from "@/stores/setting";
 import { useEffect, useRef, useState } from 'react';
 import { useTheme } from 'next-themes'
 import useChatStore from '@/stores/chat';
+import { debounce } from 'lodash-es'
 
 export default function ChatPreview({text}: {text: string}) {
   const [id] = useState('preview-only');
@@ -26,8 +27,10 @@ export default function ChatPreview({text}: {text: string}) {
     }, 100);
   }
 
+  const bindPreviewLinkDebounce = debounce(bindPreviewLink, 1000)
+
   useEffect(() => {
-    bindPreviewLink()
+    bindPreviewLinkDebounce()
   }, [chats])
 
   useEffect(() => {

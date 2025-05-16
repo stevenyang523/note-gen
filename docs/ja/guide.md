@@ -13,7 +13,7 @@ NoteGenは、AIを使用して記録と執筆を橋渡しし、断片化され�
 
 記録：
 
-![record](https://s2.loli.net/2025/04/14/NxhiWjMZT7RtusS.png)
+![record](https://github.com/user-attachments/assets/34f7fdc7-ebab-473f-ad8b-e2e93ed0f9e3)
 
 執筆：
 
