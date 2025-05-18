@@ -290,7 +290,7 @@ export async function fetchAiStream(text: string, onUpdate: (content: string) =>
         // 如果存在 thinkingContent 则每次将内容插入到 fullContent 的 <thinking></thinking> 标签中，只保留一个<thinking></thinking>标签
         if (thinkingContent) {
           thinking += thinkingContent
-          fullContent = `<thinking>${thinking}<thinking>`
+          fullContent = `<thinking>${thinking}</thinking>`
         }
         if (content) {
           fullContent += content
